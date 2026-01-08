@@ -33,7 +33,9 @@ interface BookingDetail {
     expiresAt: string;
 }
 
-type Props = NativeStackScreenProps<any, 'BookingDetail'>;
+import { UserStackParamList } from '../../navigation/UserNavigator';
+
+type Props = NativeStackScreenProps<UserStackParamList, 'BookingDetail'>;
 
 export default function BookingDetailScreen({ route, navigation }: Props) {
     const { bookingId } = route.params;

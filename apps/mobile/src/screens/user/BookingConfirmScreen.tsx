@@ -12,8 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { apiService } from '../../services/api';
 import { COLORS } from '../../constants';
+import { UserStackParamList } from '../../navigation/UserNavigator';
 
-type Props = NativeStackScreenProps<any, 'BookingConfirm'>;
+type Props = NativeStackScreenProps<UserStackParamList, 'BookingConfirm'>;
 
 export default function BookingConfirmScreen({ route, navigation }: Props) {
     const { gymId, gymName } = route.params;

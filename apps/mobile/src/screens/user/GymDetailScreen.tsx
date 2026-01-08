@@ -36,7 +36,9 @@ interface Gym {
     };
 }
 
-type Props = NativeStackScreenProps<any, 'GymDetail'>;
+import { UserStackParamList } from '../../navigation/UserNavigator';
+
+type Props = NativeStackScreenProps<UserStackParamList, 'GymDetail'>;
 
 export default function GymDetailScreen({ route, navigation }: Props) {
     const { gymId } = route.params;
