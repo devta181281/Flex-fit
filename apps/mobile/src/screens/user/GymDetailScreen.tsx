@@ -64,7 +64,7 @@ export default function GymDetailScreen({ route, navigation }: Props) {
     };
 
     const handleBookNow = () => {
-        navigation.navigate('BookingConfirm', { gymId, gymName: gym?.name });
+        navigation.navigate('BookingConfirm', { gymId, gymName: gym?.name || '' });
     };
 
     const formatPrice = (price: number) => `₹${price}`;
