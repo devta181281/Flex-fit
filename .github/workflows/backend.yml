@@ -1,0 +1,51 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/backend
+      
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/backend
+      
+      - name: Run linter
+        run: npm run lint
+        working-directory: apps/backend
+      
+      - name: Build
+        run: npm run build
+        working-directory: apps/backend
+
+  # Uncomment when ready to deploy
+  # deploy:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy to Railway/Render
+  #       run: echo "Add deployment steps here"

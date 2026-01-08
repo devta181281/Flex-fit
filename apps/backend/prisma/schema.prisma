@@ -1,0 +1,144 @@
+// Prisma Schema for FlexFit
+// Database: PostgreSQL (Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================================
+// Enums
+// ================================
+
+enum GymStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DISABLED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+// ================================
+// Models
+// ================================
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  phone       String?
+  name        String?
+  age         Int?
+  gender      String?
+  avatar      String?
+  supabaseUid String    @unique
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model GymOwner {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  phone       String?
+  supabaseUid String   @unique
+  gyms        Gym[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("gym_owners")
+}
+
+model Gym {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  address      String
+  latitude     Float
+  longitude    Float
+  dayPassPrice Decimal   @db.Decimal(10, 2)
+  amenities    String[]
+  images       String[]
+  openingHours Json      // { mon: "6:00-22:00", tue: "6:00-22:00", ... }
+  rules        String?
+  status       GymStatus @default(PENDING)
+  rejectReason String?
+  rating       Float     @default(0)
+  ownerId      String
+  owner        GymOwner  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([latitude, longitude])
+  @@map("gyms")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  bookingCode String        @unique // Human-readable: FLX-XXXXXX
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gymId       String
+  gym         Gym           @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  bookingDate DateTime
+  amount      Decimal       @db.Decimal(10, 2)
+  status      BookingStatus @default(CONFIRMED)
+  qrCode      String        // QR code data (base64 or URL)
+  paymentId   String?
+  payment     Payment?      @relation(fields: [paymentId], references: [id])
+  usedAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([gymId])
+  @@index([status])
+  @@index([bookingDate])
+  @@map("bookings")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  razorpayPaymentId String        @unique
+  razorpayOrderId   String
+  razorpaySignature String?
+  amount            Decimal       @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  bookings          Booking[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([razorpayOrderId])
+  @@map("payments")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hashed with bcrypt
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
