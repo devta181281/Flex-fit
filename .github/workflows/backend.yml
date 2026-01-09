@@ -26,13 +26,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install root dependencies
+      - name: Install all dependencies
         run: npm ci
-        # Install from root to get shared ESLint plugins
-      
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: apps/backend
+        # npm workspaces installs all workspace dependencies from root
       
       - name: Generate Prisma Client
         run: npx prisma generate
