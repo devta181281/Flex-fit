@@ -3,13 +3,8 @@ name: Backend CI/CD
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'apps/backend/**'
-      - '.github/workflows/backend.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'apps/backend/**'
   workflow_dispatch:
     # Allows manual triggering from GitHub Actions UI
 

@@ -1,0 +1,31 @@
+name: Admin Panel CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    # Allows manual triggering from GitHub Actions UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install all dependencies
+        run: npm ci
+        # npm workspaces installs all workspace dependencies from root
+      
+      - name: Build Admin Panel
+        run: npm run build
+        working-directory: apps/admin
+        # Next.js build includes TypeScript type checking
