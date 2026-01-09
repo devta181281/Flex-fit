@@ -26,7 +26,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: npm ci
+        # Install from root to get shared TypeScript config
+      
+      - name: Install mobile dependencies
         run: npm ci
         working-directory: apps/mobile
       
