@@ -10,6 +10,8 @@ on:
     branches: [main]
     paths:
       - 'apps/mobile/**'
+  workflow_dispatch:
+    # Allows manual triggering from GitHub Actions UI
 
 jobs:
   lint-and-type-check:
