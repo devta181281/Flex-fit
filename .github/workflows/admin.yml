@@ -25,10 +25,7 @@ jobs:
         run: npm ci
         # npm workspaces installs all workspace dependencies from root
       
-      - name: Type check
-        run: npx tsc --noEmit
-        working-directory: apps/admin
-      
-      - name: Build
+      - name: Build Admin Panel
         run: npm run build
         working-directory: apps/admin
+        # Next.js build includes TypeScript type checking
