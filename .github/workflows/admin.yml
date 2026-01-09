@@ -1,4 +1,4 @@
-name: Backend CI/CD
+name: Admin Panel CI
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     # Allows manual triggering from GitHub Actions UI
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -25,24 +25,10 @@ jobs:
         run: npm ci
         # npm workspaces installs all workspace dependencies from root
       
-      - name: Generate Prisma Client
-        run: npx prisma generate
-        working-directory: apps/backend
-      
-      - name: Run linter
-        run: npm run lint
-        working-directory: apps/backend
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: apps/admin
       
       - name: Build
         run: npm run build
-        working-directory: apps/backend
-
-  # Uncomment when ready to deploy
-  # deploy:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main'
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Deploy to Railway/Render
-  #       run: echo "Add deployment steps here"
+        working-directory: apps/admin
