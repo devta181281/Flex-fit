@@ -10,36 +10,7 @@ import GymRegistrationScreen from '../screens/owner/GymRegistrationScreen';
 import GymBookingsScreen from '../screens/owner/GymBookingsScreen';
 import GymEditScreen from '../screens/owner/GymEditScreen';
 import OwnerProfileScreen from '../screens/owner/OwnerProfileScreen';
-
-// QR Scanner placeholder (will be implemented in Phase 5)
-import { View, StyleSheet } from 'react-native';
-function QRScannerScreen() {
-    return (
-        <View style={placeholderStyles.container}>
-            <Text style={placeholderStyles.text}>📷 QR Scanner</Text>
-            <Text style={placeholderStyles.subtext}>Coming in Phase 5</Text>
-        </View>
-    );
-}
-
-const placeholderStyles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    text: {
-        color: '#fff',
-        fontSize: 24,
-        fontWeight: '700',
-        marginBottom: 8,
-    },
-    subtext: {
-        color: '#888',
-        fontSize: 16,
-    },
-});
+import QRScannerScreen from '../screens/owner/QRScannerScreen';
 
 // Types
 export type OwnerStackParamList = {
