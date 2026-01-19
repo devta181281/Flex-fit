@@ -4,14 +4,35 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sun, Moon } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [isDark, setIsDark] = useState(true);
     const { login, isAuthenticated, isLoading: authLoading } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        setMounted(true);
+        // Check current theme from document
+        setIsDark(document.documentElement.classList.contains('dark'));
+    }, []);
+
+    const toggleTheme = () => {
+        const newIsDark = !isDark;
+        setIsDark(newIsDark);
+        if (newIsDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        }
+        localStorage.setItem('flexfit-admin-theme', newIsDark ? 'dark' : 'light');
+    };
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -23,8 +44,8 @@ export default function LoginPage() {
     // Show loading while checking auth
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FF6B35] border-t-transparent" />
+            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
             </div>
         );
     }
@@ -56,22 +77,32 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--background)] transition-colors">
+            {/* Theme Toggle - only show when mounted */}
+            {mounted && (
+                <button
+                    onClick={toggleTheme}
+                    className="fixed top-6 right-6 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+            )}
+
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-[#FF6B35]">FlexFit</h1>
-                    <p className="text-zinc-400 mt-2">Admin Dashboard</p>
+                    <h1 className="text-4xl font-bold text-[var(--primary)]">FlexFit</h1>
+                    <p className="text-[var(--muted)] mt-2">Admin Dashboard</p>
                 </div>
 
                 {/* Login Card */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
-                    <h2 className="text-2xl font-semibold mb-6">Sign In</h2>
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 transition-colors">
+                    <h2 className="text-2xl font-semibold mb-6 text-[var(--foreground)]">Sign In</h2>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">
+                            <label className="block text-sm font-medium text-[var(--muted)] mb-2">
                                 Email
                             </label>
                             <input
@@ -79,14 +110,14 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="admin@flexfit.com"
-                                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition-colors"
+                                className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors"
                                 disabled={isLoading}
                             />
                         </div>
 
                         {/* Password */}
                         <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">
+                            <label className="block text-sm font-medium text-[var(--muted)] mb-2">
                                 Password
                             </label>
                             <input
@@ -94,7 +125,7 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition-colors"
+                                className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors"
                                 disabled={isLoading}
                             />
                         </div>
@@ -103,7 +134,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 px-4 bg-[#FF6B35] hover:bg-[#e55a28] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -117,8 +148,8 @@ export default function LoginPage() {
                     </form>
 
                     {/* Demo credentials hint */}
-                    <div className="mt-6 pt-6 border-t border-zinc-800">
-                        <p className="text-xs text-zinc-500 text-center">
+                    <div className="mt-6 pt-6 border-t border-[var(--border)]">
+                        <p className="text-xs text-[var(--muted)] text-center">
                             Demo: admin@flexfit.com / admin123
                         </p>
                     </div>

@@ -1,6 +1,25 @@
 @import "tailwindcss";
 
+/* Light Theme (default) */
 :root {
+  --background: #ffffff;
+  --foreground: #020617;
+  --primary: #202A44;
+  --primary-hover: #1A2238;
+  --surface: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --border: #e5e7eb;
+  --muted: #64748b;
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+  --card: #ffffff;
+  --text: #020617;
+  --text-secondary: #475569;
+}
+
+/* Dark Theme */
+.dark {
   --background: #09090b;
   --foreground: #fafafa;
   --primary: #FF6B35;
@@ -12,6 +31,9 @@
   --success: #22c55e;
   --warning: #eab308;
   --error: #ef4444;
+  --card: #0f0f12;
+  --text: #fafafa;
+  --text-secondary: #a1a1aa;
 }
 
 @theme inline {
@@ -26,6 +48,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100vh;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 /* Custom scrollbar */
@@ -48,10 +71,24 @@ body {
 }
 
 /* Input focus styles */
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+:root input:focus,
+:root textarea:focus,
+:root select:focus {
+  box-shadow: 0 0 0 3px rgba(32, 42, 68, 0.1);
 }
 
 /* Button transitions */

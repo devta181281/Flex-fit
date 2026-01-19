@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
@@ -14,27 +13,27 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, icon: Icon, trend, color = 'default' }: MetricCardProps) {
     const colorStyles = {
-        default: 'bg-zinc-800',
-        primary: 'bg-[#FF6B35]/10 border-[#FF6B35]/20',
+        default: 'bg-[var(--surface-hover)]',
+        primary: 'bg-[var(--primary)]/10 border-[var(--primary)]/20',
         success: 'bg-emerald-500/10 border-emerald-500/20',
         warning: 'bg-amber-500/10 border-amber-500/20',
     };
 
     const iconColors = {
-        default: 'text-zinc-400',
-        primary: 'text-[#FF6B35]',
+        default: 'text-[var(--muted)]',
+        primary: 'text-[var(--primary)]',
         success: 'text-emerald-500',
         warning: 'text-amber-500',
     };
 
     return (
-        <div className={`${colorStyles[color]} border border-zinc-800 rounded-xl p-6`}>
+        <div className={`${colorStyles[color]} border border-[var(--border)] rounded-xl p-6 transition-colors`}>
             <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-zinc-400">{title}</span>
+                <span className="text-sm text-[var(--muted)]">{title}</span>
                 <Icon className={`w-5 h-5 ${iconColors[color]}`} />
             </div>
             <div className="flex items-end justify-between">
-                <span className="text-3xl font-bold">{value}</span>
+                <span className="text-3xl font-bold text-[var(--foreground)]">{value}</span>
                 {trend && (
                     <span className={`text-sm ${trend.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                         {trend.isPositive ? '+' : ''}{trend.value}%

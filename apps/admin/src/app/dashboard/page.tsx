@@ -27,14 +27,14 @@ export default function DashboardPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FF6B35] border-t-transparent" />
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-red-500">
+            <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-xl p-6 text-[var(--error)]">
                 Failed to load dashboard data. Please try again.
             </div>
         );
@@ -52,8 +52,8 @@ export default function DashboardPage() {
         <div className="space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <p className="text-zinc-400 mt-1">Welcome back! Here's what's happening.</p>
+                <h1 className="text-3xl font-bold text-[var(--foreground)]">Dashboard</h1>
+                <p className="text-[var(--muted)] mt-1">Welcome back! Here's what's happening.</p>
             </div>
 
             {/* Metrics Grid */}
@@ -90,23 +90,23 @@ export default function DashboardPage() {
 
             {/* Pending Approvals Section */}
             {pendingGyms && pendingGyms.length > 0 && (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-                    <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl">
+                    <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
                         <div>
-                            <h2 className="text-xl font-semibold">Pending Approvals</h2>
-                            <p className="text-sm text-zinc-400 mt-1">
+                            <h2 className="text-xl font-semibold text-[var(--foreground)]">Pending Approvals</h2>
+                            <p className="text-sm text-[var(--muted)] mt-1">
                                 {pendingGyms.length} gym{pendingGyms.length !== 1 ? 's' : ''} waiting for review
                             </p>
                         </div>
                         <Link
                             href="/dashboard/gyms/pending"
-                            className="flex items-center gap-2 text-[#FF6B35] hover:underline"
+                            className="flex items-center gap-2 text-[var(--primary)] hover:underline"
                         >
                             View all
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
-                    <div className="divide-y divide-zinc-800">
+                    <div className="divide-y divide-[var(--border)]">
                         {pendingGyms.slice(0, 3).map((gym) => (
                             <div key={gym.id} className="p-6 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -117,18 +117,18 @@ export default function DashboardPage() {
                                             className="w-12 h-12 rounded-lg object-cover"
                                         />
                                     ) : (
-                                        <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center">
-                                            <Building2 className="w-6 h-6 text-zinc-600" />
+                                        <div className="w-12 h-12 rounded-lg bg-[var(--surface-hover)] flex items-center justify-center">
+                                            <Building2 className="w-6 h-6 text-[var(--muted)]" />
                                         </div>
                                     )}
                                     <div>
-                                        <h3 className="font-medium">{gym.name}</h3>
-                                        <p className="text-sm text-zinc-400">{gym.address}</p>
+                                        <h3 className="font-medium text-[var(--foreground)]">{gym.name}</h3>
+                                        <p className="text-sm text-[var(--muted)]">{gym.address}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm text-zinc-400">Owner: {gym.owner.name}</p>
-                                    <p className="text-sm font-medium text-[#FF6B35]">
+                                    <p className="text-sm text-[var(--muted)]">Owner: {gym.owner.name}</p>
+                                    <p className="text-sm font-medium text-[var(--primary)]">
                                         ₹{gym.dayPassPrice}/day
                                     </p>
                                 </div>
@@ -142,37 +142,37 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                     href="/dashboard/gyms/pending"
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-[#FF6B35]/50 transition-colors group"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--primary)]/50 transition-colors group"
                 >
                     <Clock className="w-8 h-8 text-amber-500 mb-4" />
-                    <h3 className="font-semibold group-hover:text-[#FF6B35] transition-colors">
+                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                         Review Pending Gyms
                     </h3>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <p className="text-sm text-[var(--muted)] mt-1">
                         Approve or reject gym submissions
                     </p>
                 </Link>
                 <Link
                     href="/dashboard/gyms"
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-[#FF6B35]/50 transition-colors group"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--primary)]/50 transition-colors group"
                 >
                     <Building2 className="w-8 h-8 text-blue-500 mb-4" />
-                    <h3 className="font-semibold group-hover:text-[#FF6B35] transition-colors">
+                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                         Manage All Gyms
                     </h3>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <p className="text-sm text-[var(--muted)] mt-1">
                         View and manage all registered gyms
                     </p>
                 </Link>
                 <Link
                     href="/dashboard/bookings"
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-[#FF6B35]/50 transition-colors group"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--primary)]/50 transition-colors group"
                 >
                     <CalendarCheck className="w-8 h-8 text-emerald-500 mb-4" />
-                    <h3 className="font-semibold group-hover:text-[#FF6B35] transition-colors">
+                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                         View Bookings
                     </h3>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <p className="text-sm text-[var(--muted)] mt-1">
                         Monitor all platform bookings
                     </p>
                 </Link>
