@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
-import { COLORS, AMENITIES } from '../../constants';
+import { useTheme, AMENITIES } from '../../constants';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const DAY_LABELS: Record<string, string> = {
@@ -33,6 +34,7 @@ const PLACEHOLDER_IMAGES = [
 ];
 
 export default function GymRegistrationScreen() {
+    const { colors, isDark } = useTheme();
     const navigation = useNavigation<any>();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -132,7 +134,7 @@ export default function GymRegistrationScreen() {
             await apiService.gyms.create(gymData);
 
             Alert.alert(
-                'Success! 🎉',
+                'Success!',
                 'Your gym has been submitted for approval. You will be notified once it is reviewed.',
                 [{ text: 'OK', onPress: () => navigation.goBack() }]
             );
@@ -142,6 +144,8 @@ export default function GymRegistrationScreen() {
             setLoading(false);
         }
     };
+
+    const styles = createStyles(colors, isDark);
 
     const renderStepIndicator = () => (
         <View style={styles.stepIndicator}>
@@ -164,7 +168,7 @@ export default function GymRegistrationScreen() {
                 <TextInput
                     style={styles.input}
                     placeholder="e.g., PowerFit Gym"
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={colors.textMuted}
                     value={name}
                     onChangeText={setName}
                 />
@@ -175,7 +179,7 @@ export default function GymRegistrationScreen() {
                 <TextInput
                     style={[styles.input, styles.textArea]}
                     placeholder="Describe your gym..."
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={colors.textMuted}
                     value={description}
                     onChangeText={setDescription}
                     multiline
@@ -188,7 +192,7 @@ export default function GymRegistrationScreen() {
                 <TextInput
                     style={[styles.input, styles.textArea]}
                     placeholder="Street, Area, City, State"
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={colors.textMuted}
                     value={address}
                     onChangeText={setAddress}
                     multiline
@@ -203,9 +207,12 @@ export default function GymRegistrationScreen() {
             <Text style={styles.stepTitle}>Location Coordinates</Text>
             <Text style={styles.stepSubtitle}>Step 2 of 5</Text>
 
-            <Text style={styles.hint}>
-                💡 You can get coordinates from Google Maps. Right-click on location → "What's here?"
-            </Text>
+            <View style={styles.hint}>
+                <Ionicons name="bulb-outline" size={16} color={colors.primary} />
+                <Text style={styles.hintText}>
+                    You can get coordinates from Google Maps. Right-click on location → "What's here?"
+                </Text>
+            </View>
 
             <View style={styles.row}>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
@@ -213,7 +220,7 @@ export default function GymRegistrationScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder="e.g., 23.0300"
-                        placeholderTextColor={COLORS.textSecondary}
+                        placeholderTextColor={colors.textMuted}
                         value={latitude}
                         onChangeText={setLatitude}
                         keyboardType="decimal-pad"
@@ -225,7 +232,7 @@ export default function GymRegistrationScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder="e.g., 72.5600"
-                        placeholderTextColor={COLORS.textSecondary}
+                        placeholderTextColor={colors.textMuted}
                         value={longitude}
                         onChangeText={setLongitude}
                         keyboardType="decimal-pad"
@@ -245,7 +252,7 @@ export default function GymRegistrationScreen() {
                 <TextInput
                     style={styles.input}
                     placeholder="e.g., 299"
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={colors.textMuted}
                     value={dayPassPrice}
                     onChangeText={setDayPassPrice}
                     keyboardType="numeric"
@@ -260,7 +267,7 @@ export default function GymRegistrationScreen() {
                         <TextInput
                             style={styles.hourInput}
                             placeholder="6:00-22:00"
-                            placeholderTextColor={COLORS.textSecondary}
+                            placeholderTextColor={colors.textMuted}
                             value={openingHours[day]}
                             onChangeText={(val) => updateHours(day, val)}
                         />
@@ -275,7 +282,10 @@ export default function GymRegistrationScreen() {
             <Text style={styles.stepTitle}>Amenities</Text>
             <Text style={styles.stepSubtitle}>Step 4 of 5</Text>
 
-            <Text style={styles.hint}>Select all amenities available at your gym</Text>
+            <View style={styles.hint}>
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primary} />
+                <Text style={styles.hintText}>Select all amenities available at your gym</Text>
+            </View>
 
             <View style={styles.amenitiesGrid}>
                 {AMENITIES.map((amenity) => (
@@ -311,7 +321,7 @@ export default function GymRegistrationScreen() {
                 <TextInput
                     style={[styles.input, styles.textArea]}
                     placeholder="e.g., Wear proper gym attire. Carry a towel. Re-rack weights after use."
-                    placeholderTextColor={COLORS.textSecondary}
+                    placeholderTextColor={colors.textMuted}
                     value={rules}
                     onChangeText={setRules}
                     multiline
@@ -320,11 +330,26 @@ export default function GymRegistrationScreen() {
             </View>
 
             <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>📋 Summary</Text>
-                <Text style={styles.summaryItem}>• Name: {name}</Text>
-                <Text style={styles.summaryItem}>• Price: ₹{dayPassPrice}/day</Text>
-                <Text style={styles.summaryItem}>• Amenities: {selectedAmenities.length} selected</Text>
-                <Text style={styles.summaryItem}>• Location: {latitude}, {longitude}</Text>
+                <View style={styles.summaryHeader}>
+                    <Ionicons name="document-text" size={18} color={colors.primary} />
+                    <Text style={styles.summaryTitle}>Summary</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Name</Text>
+                    <Text style={styles.summaryValue}>{name}</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Price</Text>
+                    <Text style={styles.summaryValue}>₹{dayPassPrice}/day</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Amenities</Text>
+                    <Text style={styles.summaryValue}>{selectedAmenities.length} selected</Text>
+                </View>
+                <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>Location</Text>
+                    <Text style={styles.summaryValue}>{latitude}, {longitude}</Text>
+                </View>
             </View>
         </View>
     );
@@ -337,10 +362,11 @@ export default function GymRegistrationScreen() {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Text style={styles.backButton}>← Cancel</Text>
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <Ionicons name="close" size={24} color={colors.text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Register Gym</Text>
+                    <View style={{ width: 40 }} />
                 </View>
 
                 {renderStepIndicator()}
@@ -357,12 +383,14 @@ export default function GymRegistrationScreen() {
                 <View style={styles.footer}>
                     {step > 1 && (
                         <TouchableOpacity style={styles.prevButton} onPress={prevStep}>
-                            <Text style={styles.prevButtonText}>← Previous</Text>
+                            <Ionicons name="arrow-back" size={20} color={colors.text} />
+                            <Text style={styles.prevButtonText}>Back</Text>
                         </TouchableOpacity>
                     )}
                     {step < 5 ? (
                         <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
-                            <Text style={styles.nextButtonText}>Next →</Text>
+                            <Text style={styles.nextButtonText}>Next</Text>
+                            <Ionicons name="arrow-forward" size={20} color={colors.white} />
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
@@ -371,9 +399,12 @@ export default function GymRegistrationScreen() {
                             disabled={loading}
                         >
                             {loading ? (
-                                <ActivityIndicator color="#fff" />
+                                <ActivityIndicator color={colors.white} />
                             ) : (
-                                <Text style={styles.nextButtonText}>Submit for Approval</Text>
+                                <>
+                                    <Ionicons name="checkmark-circle" size={20} color={colors.white} />
+                                    <Text style={styles.nextButtonText}>Submit</Text>
+                                </>
                             )}
                         </TouchableOpacity>
                     )}
@@ -383,25 +414,30 @@ export default function GymRegistrationScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     backButton: {
-        fontSize: 16,
-        color: COLORS.primary,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: COLORS.text,
-        marginLeft: 16,
+        color: colors.text,
     },
     stepIndicator: {
         flexDirection: 'row',
@@ -418,18 +454,18 @@ const styles = StyleSheet.create({
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: COLORS.border,
+        backgroundColor: colors.border,
     },
     stepDotActive: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
     },
     stepLine: {
         width: 40,
         height: 2,
-        backgroundColor: COLORS.border,
+        backgroundColor: colors.border,
     },
     stepLineActive: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
     },
     scrollView: {
         flex: 1,
@@ -440,21 +476,28 @@ const styles = StyleSheet.create({
     stepTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 4,
     },
     stepSubtitle: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textMuted,
         marginBottom: 24,
     },
     hint: {
-        fontSize: 14,
-        color: COLORS.textSecondary,
-        backgroundColor: COLORS.surface,
-        padding: 12,
-        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: colors.primary + '12',
+        padding: 14,
+        borderRadius: 12,
         marginBottom: 20,
+        gap: 10,
+    },
+    hintText: {
+        flex: 1,
+        fontSize: 14,
+        color: colors.text,
+        lineHeight: 20,
     },
     inputGroup: {
         marginBottom: 20,
@@ -462,17 +505,17 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 8,
     },
     input: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         fontSize: 16,
-        color: COLORS.text,
+        color: colors.text,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
     },
     textArea: {
         height: 100,
@@ -482,7 +525,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     hoursContainer: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 12,
     },
@@ -494,16 +537,16 @@ const styles = StyleSheet.create({
     },
     dayLabel: {
         fontSize: 14,
-        color: COLORS.text,
+        color: colors.text,
         width: 100,
     },
     hourInput: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
         borderRadius: 8,
         padding: 10,
         fontSize: 14,
-        color: COLORS.text,
+        color: colors.text,
         textAlign: 'center',
     },
     amenitiesGrid: {
@@ -512,41 +555,68 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     amenityChip: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
     },
     amenityChipActive: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     amenityText: {
         fontSize: 14,
-        color: COLORS.text,
+        color: colors.text,
     },
     amenityTextActive: {
-        color: '#fff',
+        color: colors.white,
         fontWeight: '600',
     },
     summaryCard: {
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
+        backgroundColor: colors.surface,
+        borderRadius: 16,
         padding: 16,
         marginTop: 10,
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.06,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
+    },
+    summaryHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 16,
     },
     summaryTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: COLORS.text,
-        marginBottom: 12,
+        color: colors.text,
     },
     summaryItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 8,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.border,
+    },
+    summaryLabel: {
         fontSize: 14,
-        color: COLORS.textSecondary,
-        marginBottom: 6,
+        color: colors.textMuted,
+    },
+    summaryValue: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.text,
     },
     footer: {
         flexDirection: 'row',
@@ -555,27 +625,33 @@ const styles = StyleSheet.create({
     },
     prevButton: {
         flex: 1,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        paddingVertical: 16,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: 14,
+        paddingVertical: 16,
+        gap: 8,
     },
     prevButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: COLORS.text,
+        color: colors.text,
     },
     nextButton: {
         flex: 2,
-        backgroundColor: COLORS.primary,
-        borderRadius: 12,
-        paddingVertical: 16,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 14,
+        paddingVertical: 16,
+        gap: 8,
     },
     nextButtonText: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.white,
     },
     buttonDisabled: {
         opacity: 0.7,
