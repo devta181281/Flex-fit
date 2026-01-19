@@ -66,14 +66,14 @@ export default function PendingGymsPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FF6B35] border-t-transparent" />
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-red-500 flex items-center gap-3">
+            <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-xl p-6 text-[var(--error)] flex items-center gap-3">
                 <AlertCircle className="w-5 h-5" />
                 Failed to load pending gyms. Please try again.
             </div>
@@ -84,8 +84,8 @@ export default function PendingGymsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold">Pending Approvals</h1>
-                <p className="text-zinc-400 mt-1">
+                <h1 className="text-3xl font-bold text-[var(--foreground)]">Pending Approvals</h1>
+                <p className="text-[var(--muted)] mt-1">
                     Review and approve gym submissions
                 </p>
             </div>
@@ -104,11 +104,11 @@ export default function PendingGymsPage() {
                     {pendingGyms.map((gym) => (
                         <div
                             key={gym.id}
-                            className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-colors cursor-pointer"
+                            className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden hover:border-[var(--primary)]/50 transition-colors cursor-pointer"
                             onClick={() => setSelectedGym(gym)}
                         >
                             {/* Image */}
-                            <div className="h-40 bg-zinc-800 relative">
+                            <div className="h-40 bg-[var(--surface-hover)] relative">
                                 {gym.images[0] ? (
                                     <img
                                         src={gym.images[0]}
@@ -117,22 +117,22 @@ export default function PendingGymsPage() {
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <Building2 className="w-12 h-12 text-zinc-600" />
+                                        <Building2 className="w-12 h-12 text-[var(--muted)]" />
                                     </div>
                                 )}
-                                <span className="absolute top-3 right-3 px-2 py-1 bg-amber-500 text-xs font-semibold rounded-full">
+                                <span className="absolute top-3 right-3 px-2 py-1 bg-amber-500 text-white text-xs font-semibold rounded-full">
                                     PENDING
                                 </span>
                             </div>
 
                             {/* Content */}
                             <div className="p-4">
-                                <h3 className="font-semibold text-lg mb-1">{gym.name}</h3>
-                                <p className="text-sm text-zinc-400 mb-3 line-clamp-1">{gym.address}</p>
+                                <h3 className="font-semibold text-lg mb-1 text-[var(--foreground)]">{gym.name}</h3>
+                                <p className="text-sm text-[var(--muted)] mb-3 line-clamp-1">{gym.address}</p>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[#FF6B35] font-semibold">₹{gym.dayPassPrice}/day</span>
-                                    <span className="text-sm text-zinc-500">by {gym.owner.name}</span>
+                                    <span className="text-[var(--primary)] font-semibold">₹{gym.dayPassPrice}/day</span>
+                                    <span className="text-sm text-[var(--muted)]">by {gym.owner.name}</span>
                                 </div>
 
                                 {/* Quick Actions */}
@@ -143,7 +143,7 @@ export default function PendingGymsPage() {
                                             handleApprove(gym.id);
                                         }}
                                         disabled={approveMutation.isPending}
-                                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
                                     >
                                         <CheckCircle2 className="w-4 h-4" />
                                         Approve
@@ -154,7 +154,7 @@ export default function PendingGymsPage() {
                                             handleReject(gym.id);
                                         }}
                                         disabled={rejectMutation.isPending}
-                                        className="flex-1 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                        className="flex-1 py-2 bg-[var(--surface-hover)] hover:bg-[var(--border)] text-[var(--foreground)] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                     >
                                         Reject
                                     </button>
@@ -164,10 +164,10 @@ export default function PendingGymsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-12 text-center">
                     <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">All caught up!</h3>
-                    <p className="text-zinc-400">There are no pending gyms to review.</p>
+                    <h3 className="text-xl font-semibold mb-2 text-[var(--foreground)]">All caught up!</h3>
+                    <p className="text-[var(--muted)]">There are no pending gyms to review.</p>
                 </div>
             )}
 

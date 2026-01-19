@@ -22,8 +22,8 @@ export default function DashboardLayout({
     // Show loading while checking auth
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#FF6B35] border-t-transparent" />
+            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
             </div>
         );
     }
@@ -34,7 +34,7 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950">
+        <div className="min-h-screen bg-[var(--background)] transition-colors">
             <Sidebar />
             <main className="ml-64 p-8">
                 {children}
