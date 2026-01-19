@@ -44,8 +44,8 @@ export const DarkTheme = {
     textMuted: '#94A3B8',
 
     // Buttons
-    primary: '#14B8A6',
-    primaryHover: '#0D9488',
+    primary: '#FF6B35',
+    primaryHover: '#E55A28',
     secondary: '#1F2937',
     secondaryText: '#F8FAFC',
 
