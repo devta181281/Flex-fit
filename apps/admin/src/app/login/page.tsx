@@ -5,16 +5,34 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Loader2, Sun, Moon } from 'lucide-react';
-import { useTheme } from '@/providers/theme';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [isDark, setIsDark] = useState(true);
     const { login, isAuthenticated, isLoading: authLoading } = useAuth();
-    const { resolvedTheme, toggleTheme } = useTheme();
     const router = useRouter();
-    const isDark = resolvedTheme === 'dark';
+
+    useEffect(() => {
+        setMounted(true);
+        // Check current theme from document
+        setIsDark(document.documentElement.classList.contains('dark'));
+    }, []);
+
+    const toggleTheme = () => {
+        const newIsDark = !isDark;
+        setIsDark(newIsDark);
+        if (newIsDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        }
+        localStorage.setItem('flexfit-admin-theme', newIsDark ? 'dark' : 'light');
+    };
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -60,13 +78,15 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--background)] transition-colors">
-            {/* Theme Toggle */}
-            <button
-                onClick={toggleTheme}
-                className="fixed top-6 right-6 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            {/* Theme Toggle - only show when mounted */}
+            {mounted && (
+                <button
+                    onClick={toggleTheme}
+                    className="fixed top-6 right-6 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+            )}
 
             <div className="w-full max-w-md">
                 {/* Logo */}
