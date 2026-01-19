@@ -9,11 +9,13 @@ import {
     ActivityIndicator,
     Animated,
     Dimensions,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
-import { COLORS } from '../../constants';
+import { useTheme } from '../../constants';
 import { useAuthStore } from '../../store/authStore';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +33,7 @@ interface Gym {
 }
 
 export default function QRScannerScreen() {
+    const { colors, isDark } = useTheme();
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -129,12 +132,14 @@ export default function QRScannerScreen() {
         setShowManualInput(false);
     };
 
+    const styles = createStyles(colors, isDark);
+
     // Permission loading
     if (!permission) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -145,7 +150,7 @@ export default function QRScannerScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centered}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={styles.loadingText}>Loading your gyms...</Text>
                 </View>
             </SafeAreaView>
@@ -157,7 +162,9 @@ export default function QRScannerScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centered}>
-                    <Text style={styles.noGymsIcon}>🏋️</Text>
+                    <View style={styles.emptyIconContainer}>
+                        <Ionicons name="fitness-outline" size={48} color={colors.textMuted} />
+                    </View>
                     <Text style={styles.noGymsTitle}>No Approved Gyms</Text>
                     <Text style={styles.noGymsText}>
                         You need at least one approved gym to scan QR codes.
@@ -172,18 +179,22 @@ export default function QRScannerScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centered}>
-                    <Text style={styles.permissionIcon}>📷</Text>
+                    <View style={styles.permissionIconContainer}>
+                        <Ionicons name="camera-outline" size={48} color={colors.primary} />
+                    </View>
                     <Text style={styles.permissionTitle}>Camera Permission Required</Text>
                     <Text style={styles.permissionText}>
                         Allow camera access to scan QR codes
                     </Text>
                     <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+                        <Ionicons name="camera" size={20} color={colors.white} />
                         <Text style={styles.permissionButtonText}>Grant Permission</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.manualButton}
                         onPress={() => setShowManualInput(true)}
                     >
+                        <Ionicons name="keypad-outline" size={18} color={colors.textSecondary} />
                         <Text style={styles.manualButtonText}>Enter Code Manually</Text>
                     </TouchableOpacity>
                 </View>
@@ -202,7 +213,13 @@ export default function QRScannerScreen() {
                             result.valid ? styles.successCard : styles.errorCard,
                         ]}
                     >
-                        <Text style={styles.resultIcon}>{result.valid ? '✅' : '❌'}</Text>
+                        <View style={[styles.resultIconContainer, result.valid ? styles.successIconBg : styles.errorIconBg]}>
+                            <Ionicons
+                                name={result.valid ? 'checkmark-circle' : 'close-circle'}
+                                size={56}
+                                color={result.valid ? colors.success : colors.error}
+                            />
+                        </View>
                         <Text style={styles.resultTitle}>
                             {result.valid ? 'Check-in Successful!' : 'Invalid Booking'}
                         </Text>
@@ -233,6 +250,7 @@ export default function QRScannerScreen() {
                     </View>
 
                     <TouchableOpacity style={styles.scanAgainButton} onPress={resetScanner}>
+                        <Ionicons name="scan" size={20} color={colors.white} />
                         <Text style={styles.scanAgainText}>Scan Another</Text>
                     </TouchableOpacity>
                 </View>
@@ -280,7 +298,7 @@ export default function QRScannerScreen() {
                     <TextInput
                         style={styles.codeInput}
                         placeholder="FLX-XXXXXX"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={colors.textMuted}
                         value={manualCode}
                         onChangeText={setManualCode}
                         autoCapitalize="characters"
@@ -293,9 +311,12 @@ export default function QRScannerScreen() {
                         disabled={!manualCode || !selectedGym || loading}
                     >
                         {loading ? (
-                            <ActivityIndicator color="#fff" />
+                            <ActivityIndicator color={colors.white} />
                         ) : (
-                            <Text style={styles.validateButtonText}>Validate Code</Text>
+                            <>
+                                <Ionicons name="checkmark-circle" size={20} color={colors.white} />
+                                <Text style={styles.validateButtonText}>Validate Code</Text>
+                            </>
                         )}
                     </TouchableOpacity>
 
@@ -303,7 +324,8 @@ export default function QRScannerScreen() {
                         style={styles.switchButton}
                         onPress={() => setShowManualInput(false)}
                     >
-                        <Text style={styles.switchButtonText}>📷 Use Camera Instead</Text>
+                        <Ionicons name="camera-outline" size={20} color={colors.textSecondary} />
+                        <Text style={styles.switchButtonText}>Use Camera Instead</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -387,8 +409,8 @@ export default function QRScannerScreen() {
 
                 {loading && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color={COLORS.primary} />
-                        <Text style={styles.loadingText}>Validating...</Text>
+                        <ActivityIndicator size="large" color={colors.primary} />
+                        <Text style={styles.loadingOverlayText}>Validating...</Text>
                     </View>
                 )}
             </View>
@@ -398,16 +420,17 @@ export default function QRScannerScreen() {
                 style={styles.manualEntryButton}
                 onPress={() => setShowManualInput(true)}
             >
-                <Text style={styles.manualEntryText}>⌨️ Enter Code Manually</Text>
+                <Ionicons name="keypad-outline" size={20} color={colors.text} />
+                <Text style={styles.manualEntryText}>Enter Code Manually</Text>
             </TouchableOpacity>
         </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     centered: {
         flex: 1,
@@ -416,7 +439,7 @@ const styles = StyleSheet.create({
         padding: 24,
     },
     loadingText: {
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginTop: 16,
         fontSize: 16,
     },
@@ -427,11 +450,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
     },
     headerSubtitle: {
         fontSize: 14,
-        color: COLORS.primary,
+        color: colors.primary,
         marginTop: 4,
     },
     gymSelectorRow: {
@@ -446,21 +469,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
     },
     gymChipActive: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     gymChipText: {
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         fontSize: 14,
         fontWeight: '600',
     },
     gymChipTextActive: {
-        color: '#fff',
+        color: colors.white,
     },
     cameraContainer: {
         flex: 1,
@@ -487,7 +510,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 40,
         height: 40,
-        borderColor: COLORS.primary,
+        borderColor: colors.primary,
     },
     topLeft: {
         top: 0,
@@ -522,8 +545,8 @@ const styles = StyleSheet.create({
         left: 4,
         right: 4,
         height: 2,
-        backgroundColor: COLORS.primary,
-        shadowColor: COLORS.primary,
+        backgroundColor: colors.primary,
+        shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.8,
         shadowRadius: 4,
@@ -534,70 +557,103 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingOverlayText: {
+        color: colors.white,
+        marginTop: 12,
+        fontSize: 16,
+    },
     manualEntryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         margin: 16,
         padding: 16,
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: COLORS.border,
+        backgroundColor: colors.surface,
+        borderRadius: 14,
+        gap: 8,
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.08,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
     },
     manualEntryText: {
-        color: '#fff',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '600',
     },
     // Permission styles
-    permissionIcon: {
-        fontSize: 64,
-        marginBottom: 16,
+    permissionIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: colors.primary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 24,
     },
     permissionTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         marginBottom: 8,
     },
     permissionText: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: 24,
     },
     permissionButton: {
-        backgroundColor: COLORS.primary,
-        paddingHorizontal: 32,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+        paddingHorizontal: 24,
         paddingVertical: 14,
-        borderRadius: 12,
+        borderRadius: 14,
+        gap: 8,
     },
     permissionButtonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 16,
         fontWeight: '600',
     },
     manualButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginTop: 16,
         paddingVertical: 14,
+        gap: 8,
     },
     manualButtonText: {
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         fontSize: 16,
     },
     // No gyms styles
-    noGymsIcon: {
-        fontSize: 64,
-        marginBottom: 16,
+    emptyIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 24,
     },
     noGymsTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         marginBottom: 8,
     },
     noGymsText: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
     },
     // Manual input styles
@@ -609,13 +665,13 @@ const styles = StyleSheet.create({
     manualTitle: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         textAlign: 'center',
         marginBottom: 8,
     },
     manualSubtitle: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: 32,
     },
@@ -624,7 +680,7 @@ const styles = StyleSheet.create({
     },
     gymSelectorLabel: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginBottom: 12,
     },
     gymButtons: {
@@ -635,57 +691,63 @@ const styles = StyleSheet.create({
     gymButton: {
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 8,
-        backgroundColor: COLORS.surface,
+        borderRadius: 10,
+        backgroundColor: colors.surface,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
     },
     gymButtonActive: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     gymButtonText: {
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         fontSize: 14,
         fontWeight: '600',
     },
     gymButtonTextActive: {
-        color: '#fff',
+        color: colors.white,
     },
     codeInput: {
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
+        backgroundColor: colors.surface,
+        borderRadius: 14,
         padding: 18,
         fontSize: 24,
-        color: '#fff',
+        color: colors.text,
         textAlign: 'center',
         letterSpacing: 4,
         fontWeight: '700',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
         marginBottom: 24,
     },
     validateButton: {
-        backgroundColor: COLORS.primary,
-        padding: 18,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        padding: 18,
+        borderRadius: 14,
+        gap: 8,
     },
     disabledButton: {
         opacity: 0.5,
     },
     validateButtonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 18,
         fontWeight: '700',
     },
     switchButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: 24,
         padding: 16,
-        alignItems: 'center',
+        gap: 8,
     },
     switchButtonText: {
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         fontSize: 16,
     },
     // Result styles
@@ -700,28 +762,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     successCard: {
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        backgroundColor: colors.success + '15',
         borderWidth: 1,
-        borderColor: 'rgba(34, 197, 94, 0.3)',
+        borderColor: colors.success + '30',
     },
     errorCard: {
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        backgroundColor: colors.error + '15',
         borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.3)',
+        borderColor: colors.error + '30',
     },
-    resultIcon: {
-        fontSize: 64,
+    resultIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 16,
+    },
+    successIconBg: {
+        backgroundColor: colors.success + '20',
+    },
+    errorIconBg: {
+        backgroundColor: colors.error + '20',
     },
     resultTitle: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         marginBottom: 8,
     },
     resultMessage: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: 24,
     },
@@ -729,39 +801,42 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)',
+        borderTopColor: colors.border,
         width: '100%',
     },
     bookingCode: {
         fontSize: 20,
         fontWeight: '700',
-        color: COLORS.primary,
+        color: colors.primary,
         letterSpacing: 2,
         marginBottom: 12,
     },
     userName: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#fff',
+        color: colors.text,
     },
     userEmail: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginBottom: 8,
     },
     bookingDate: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
     },
     scanAgainButton: {
-        backgroundColor: COLORS.primary,
-        padding: 18,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary,
+        padding: 18,
+        borderRadius: 14,
         marginTop: 24,
+        gap: 8,
     },
     scanAgainText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 18,
         fontWeight: '700',
     },

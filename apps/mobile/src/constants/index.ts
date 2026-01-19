@@ -1,15 +1,13 @@
-// App colors
-export const COLORS = {
-    primary: '#FF6B35',
-    background: '#0F0F0F',
-    surface: '#1A1A1A',
-    border: '#333',
-    text: '#FFFFFF',
-    textSecondary: '#888888',
-    success: '#4CAF50',
-    error: '#F44336',
-    warning: '#FF9800',
-};
+// Re-export theme system
+export {
+    useTheme,
+    ThemeProvider,
+    LightTheme,
+    DarkTheme,
+    COLORS,
+    type ThemeColors,
+    type ThemeMode,
+} from './theme';
 
 // Amenities list
 export const AMENITIES = [

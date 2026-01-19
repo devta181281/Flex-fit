@@ -11,17 +11,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { apiService } from '../../services/api';
-import { COLORS } from '../../constants';
+import { useTheme } from '../../constants';
 import { UserStackParamList } from '../../navigation/UserNavigator';
 
 type Props = NativeStackScreenProps<UserStackParamList, 'BookingConfirm'>;
 
 export default function BookingConfirmScreen({ route, navigation }: Props) {
+    const { colors } = useTheme();
     const { gymId, gymName } = route.params;
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Generate next 7 days
     const getAvailableDates = () => {
         const dates = [];
         const today = new Date();
@@ -58,36 +58,33 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
 
         setLoading(true);
         try {
-            // Create payment order
-            const response = await apiService.payments.createOrder(
+            // DEV MODE: Skip payment and create test booking directly
+            const bookingResponse = await apiService.bookings.createTestBooking(
                 gymId,
                 formatDateForAPI(selectedDate)
             );
 
-            const { orderId, amount, currency } = response.data;
-
-            // Navigate to payment screen
-            navigation.navigate('Payment', {
-                gymId,
+            // Navigate to success screen
+            navigation.navigate('BookingSuccess', {
+                bookingId: bookingResponse.data.id,
                 gymName,
                 bookingDate: formatDateForAPI(selectedDate),
-                orderId,
-                amount,
-                currency,
+                bookingCode: bookingResponse.data.bookingCode,
+                qrCode: bookingResponse.data.qrCode,
             });
         } catch (error: any) {
-            Alert.alert('Error', error.response?.data?.message || 'Failed to create order');
+            Alert.alert('Error', error.response?.data?.message || 'Failed to create booking');
         } finally {
             setLoading(false);
         }
     };
 
     const dates = getAvailableDates();
+    const styles = createStyles(colors);
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Text style={styles.backButton}>← Back</Text>
@@ -96,7 +93,6 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
                     <Text style={styles.gymName}>{gymName}</Text>
                 </View>
 
-                {/* Date Selection */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Select Date</Text>
                     <Text style={styles.sectionSubtitle}>
@@ -151,30 +147,25 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
                     </View>
                 </View>
 
-                {/* What's Included */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>What's Included</Text>
                     <View style={styles.includesList}>
-                        <View style={styles.includeItem}>
-                            <Text style={styles.includeIcon}>✓</Text>
-                            <Text style={styles.includeText}>Full gym access for the day</Text>
-                        </View>
-                        <View style={styles.includeItem}>
-                            <Text style={styles.includeIcon}>✓</Text>
-                            <Text style={styles.includeText}>All equipment & machines</Text>
-                        </View>
-                        <View style={styles.includeItem}>
-                            <Text style={styles.includeIcon}>✓</Text>
-                            <Text style={styles.includeText}>Locker & shower access</Text>
-                        </View>
-                        <View style={styles.includeItem}>
-                            <Text style={styles.includeIcon}>✓</Text>
-                            <Text style={styles.includeText}>QR code for easy check-in</Text>
-                        </View>
+                        {[
+                            'Full gym access for the day',
+                            'All equipment & machines',
+                            'Locker & shower access',
+                            'QR code for easy check-in',
+                        ].map((item, index) => (
+                            <View key={index} style={styles.includeItem}>
+                                <View style={styles.checkCircle}>
+                                    <Text style={styles.includeIcon}>✓</Text>
+                                </View>
+                                <Text style={styles.includeText}>{item}</Text>
+                            </View>
+                        ))}
                     </View>
                 </View>
 
-                {/* Important Notes */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Important Notes</Text>
                     <View style={styles.noteCard}>
@@ -188,7 +179,6 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
                 </View>
             </ScrollView>
 
-            {/* Bottom Button */}
             <View style={styles.bottomBar}>
                 <TouchableOpacity
                     style={[styles.proceedButton, !selectedDate && styles.buttonDisabled]}
@@ -200,7 +190,7 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
                     ) : (
                         <Text style={styles.proceedButtonText}>
                             {selectedDate
-                                ? `Proceed to Payment - ${formatDate(selectedDate)}`
+                                ? `Proceed - ${formatDate(selectedDate)}`
                                 : 'Select a Date'}
                         </Text>
                     )}
@@ -210,28 +200,28 @@ export default function BookingConfirmScreen({ route, navigation }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     header: {
         padding: 20,
     },
     backButton: {
         fontSize: 16,
-        color: COLORS.primary,
+        color: colors.primary,
         marginBottom: 16,
     },
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 4,
     },
     gymName: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
     },
     section: {
         padding: 20,
@@ -240,12 +230,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 4,
     },
     sectionSubtitle: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginBottom: 16,
     },
     datesContainer: {
@@ -255,7 +245,7 @@ const styles = StyleSheet.create({
     },
     dateCard: {
         width: '13%',
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 8,
         alignItems: 'center',
@@ -264,29 +254,29 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
     },
     dateCardSelected: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
     dateDay: {
         fontSize: 12,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginBottom: 4,
     },
     dateNumber: {
         fontSize: 20,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
     },
     dateMonth: {
         fontSize: 12,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         marginTop: 2,
     },
     dateTextSelected: {
-        color: '#fff',
+        color: colors.white,
     },
     todayBadge: {
-        backgroundColor: COLORS.success,
+        backgroundColor: colors.success,
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 4,
@@ -294,11 +284,11 @@ const styles = StyleSheet.create({
     },
     todayText: {
         fontSize: 8,
-        color: '#fff',
+        color: colors.white,
         fontWeight: '600',
     },
     includesList: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
     },
@@ -307,36 +297,45 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    includeIcon: {
-        fontSize: 16,
-        color: COLORS.success,
+    checkCircle: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: colors.success + '20',
+        justifyContent: 'center',
+        alignItems: 'center',
         marginRight: 12,
+    },
+    includeIcon: {
+        fontSize: 14,
+        color: colors.success,
+        fontWeight: '700',
     },
     includeText: {
         fontSize: 15,
-        color: COLORS.text,
+        color: colors.text,
     },
     noteCard: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         borderLeftWidth: 4,
-        borderLeftColor: COLORS.warning,
+        borderLeftColor: colors.warning,
     },
     noteText: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 22,
     },
     bottomBar: {
         padding: 16,
         paddingBottom: 24,
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: colors.border,
     },
     proceedButton: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
@@ -345,7 +344,7 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     proceedButtonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 16,
         fontWeight: '700',
     },

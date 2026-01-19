@@ -68,6 +68,8 @@ export const apiService = {
     // Bookings
     bookings: {
         create: (data: any) => api.post('/bookings', data),
+        createTestBooking: (gymId: string, bookingDate: string) =>
+            api.post('/bookings/test-booking', { gymId, bookingDate }),
         getById: (id: string) => api.get(`/bookings/${id}`),
         getMy: () => api.get('/bookings/my'),
         validateQR: (gymId: string, bookingCode: string) =>

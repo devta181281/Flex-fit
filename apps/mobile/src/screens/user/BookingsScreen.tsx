@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -7,12 +7,14 @@ import {
     TouchableOpacity,
     RefreshControl,
     ActivityIndicator,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
-import { COLORS } from '../../constants';
+import { useTheme } from '../../constants';
 
 interface Booking {
     id: string;
@@ -33,6 +35,7 @@ interface Booking {
 }
 
 export default function BookingsScreen() {
+    const { colors, isDark } = useTheme();
     const navigation = useNavigation<NativeStackNavigationProp<any>>();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
@@ -68,7 +71,6 @@ export default function BookingsScreen() {
             weekday: 'short',
             day: 'numeric',
             month: 'short',
-            year: 'numeric',
         });
     };
 
@@ -79,19 +81,19 @@ export default function BookingsScreen() {
         return bookingDate >= today && booking.status !== 'USED' && booking.status !== 'CANCELLED' && booking.status !== 'EXPIRED';
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusConfig = (status: string) => {
         switch (status) {
             case 'CONFIRMED':
-                return COLORS.success;
+                return { color: colors.success, icon: 'checkmark-circle' as const };
             case 'PENDING':
-                return COLORS.warning;
+                return { color: colors.warning, icon: 'time' as const };
             case 'USED':
-                return COLORS.textSecondary;
+                return { color: colors.textMuted, icon: 'checkmark-done' as const };
             case 'CANCELLED':
             case 'EXPIRED':
-                return COLORS.error;
+                return { color: colors.error, icon: 'close-circle' as const };
             default:
-                return COLORS.textSecondary;
+                return { color: colors.textSecondary, icon: 'help-circle' as const };
         }
     };
 
@@ -102,44 +104,64 @@ export default function BookingsScreen() {
         navigation.navigate('BookingDetail', { bookingId: booking.id });
     };
 
-    const renderBooking = ({ item }: { item: Booking }) => (
-        <TouchableOpacity
-            style={styles.bookingCard}
-            onPress={() => handleBookingPress(item)}
-            activeOpacity={0.8}
-        >
-            <View style={styles.cardHeader}>
-                <Text style={styles.gymName}>{item.gym.name}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-                    <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-                        {item.status}
-                    </Text>
-                </View>
-            </View>
+    const styles = createStyles(colors, isDark);
 
-            <Text style={styles.address}>{item.gym.address}</Text>
+    const renderBooking = ({ item }: { item: Booking }) => {
+        const statusConfig = getStatusConfig(item.status);
+        const isActive = item.status === 'CONFIRMED' && isUpcoming(item);
 
-            <View style={styles.cardFooter}>
-                <View style={styles.dateContainer}>
-                    <Text style={styles.dateLabel}>📅</Text>
-                    <Text style={styles.dateText}>{formatDate(item.bookingDate)}</Text>
+        return (
+            <TouchableOpacity
+                style={styles.bookingCard}
+                onPress={() => handleBookingPress(item)}
+                activeOpacity={0.7}
+            >
+                <View style={styles.cardHeader}>
+                    <View style={styles.gymInfo}>
+                        <Text style={styles.gymName} numberOfLines={1}>{item.gym.name}</Text>
+                        <View style={styles.locationRow}>
+                            <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+                            <Text style={styles.address} numberOfLines={1}>{item.gym.address}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '18' }]}>
+                        <Ionicons name={statusConfig.icon} size={12} color={statusConfig.color} />
+                        <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                            {item.status}
+                        </Text>
+                    </View>
                 </View>
-                {item.payment && (
-                    <Text style={styles.amount}>₹{item.payment.amount}</Text>
+
+                <View style={styles.cardFooter}>
+                    <View style={styles.dateContainer}>
+                        <Ionicons name="calendar-outline" size={16} color={colors.primary} />
+                        <Text style={styles.dateText}>{formatDate(item.bookingDate)}</Text>
+                    </View>
+                    {item.payment && (
+                        <Text style={styles.amount}>₹{item.payment.amount}</Text>
+                    )}
+                </View>
+
+                {isActive && (
+                    <View style={styles.qrHint}>
+                        <Ionicons name="qr-code-outline" size={16} color={colors.primary} />
+                        <Text style={styles.qrHintText}>Tap to view QR code</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                    </View>
                 )}
-            </View>
-
-            {item.status === 'CONFIRMED' && isUpcoming(item) && (
-                <View style={styles.qrHint}>
-                    <Text style={styles.qrHintText}>Tap to view QR code →</Text>
-                </View>
-            )}
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📋</Text>
+            <View style={styles.emptyIconContainer}>
+                <Ionicons
+                    name={activeTab === 'upcoming' ? 'calendar-outline' : 'time-outline'}
+                    size={48}
+                    color={colors.textMuted}
+                />
+            </View>
             <Text style={styles.emptyText}>
                 {activeTab === 'upcoming' ? 'No upcoming bookings' : 'No past bookings'}
             </Text>
@@ -153,6 +175,7 @@ export default function BookingsScreen() {
                     style={styles.exploreButton}
                     onPress={() => navigation.navigate('Home')}
                 >
+                    <Ionicons name="compass" size={18} color={colors.white} />
                     <Text style={styles.exploreButtonText}>Explore Gyms</Text>
                 </TouchableOpacity>
             )}
@@ -163,7 +186,7 @@ export default function BookingsScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -173,15 +196,20 @@ export default function BookingsScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title}>My Bookings</Text>
+                <Text style={styles.title}>Bookings</Text>
             </View>
 
-            {/* Tabs */}
+            {/* Tab Switcher */}
             <View style={styles.tabContainer}>
                 <TouchableOpacity
                     style={[styles.tab, activeTab === 'upcoming' && styles.tabActive]}
                     onPress={() => setActiveTab('upcoming')}
                 >
+                    <Ionicons
+                        name="calendar"
+                        size={18}
+                        color={activeTab === 'upcoming' ? colors.white : colors.textMuted}
+                    />
                     <Text style={[styles.tabText, activeTab === 'upcoming' && styles.tabTextActive]}>
                         Upcoming ({upcomingBookings.length})
                     </Text>
@@ -190,6 +218,11 @@ export default function BookingsScreen() {
                     style={[styles.tab, activeTab === 'past' && styles.tabActive]}
                     onPress={() => setActiveTab('past')}
                 >
+                    <Ionicons
+                        name="time"
+                        size={18}
+                        color={activeTab === 'past' ? colors.white : colors.textMuted}
+                    />
                     <Text style={[styles.tabText, activeTab === 'past' && styles.tabTextActive]}>
                         Past ({pastBookings.length})
                     </Text>
@@ -206,7 +239,7 @@ export default function BookingsScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor={COLORS.primary}
+                        tintColor={colors.primary}
                     />
                 }
                 contentContainerStyle={styles.listContent}
@@ -216,10 +249,10 @@ export default function BookingsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
@@ -227,72 +260,101 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     header: {
-        padding: 20,
-        paddingBottom: 8,
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 16,
     },
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
     },
     tabContainer: {
         flexDirection: 'row',
         paddingHorizontal: 20,
         marginBottom: 16,
+        gap: 12,
     },
     tab: {
         flex: 1,
-        paddingVertical: 12,
+        flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        gap: 6,
     },
     tabActive: {
-        borderBottomColor: COLORS.primary,
+        backgroundColor: colors.primary,
     },
     tabText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
-        color: COLORS.textSecondary,
+        color: colors.textMuted,
     },
     tabTextActive: {
-        color: COLORS.primary,
+        color: colors.white,
     },
     listContent: {
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
         paddingBottom: 24,
     },
     bookingCard: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.06,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
+        alignItems: 'flex-start',
+        marginBottom: 12,
+    },
+    gymInfo: {
+        flex: 1,
+        marginRight: 12,
     },
     gymName: {
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
+        marginBottom: 4,
+    },
+    locationRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    address: {
+        fontSize: 13,
+        color: colors.textMuted,
         flex: 1,
     },
     statusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingVertical: 5,
+        borderRadius: 8,
+        gap: 4,
     },
     statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    address: {
-        fontSize: 14,
-        color: COLORS.textSecondary,
-        marginBottom: 12,
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
     },
     cardFooter: {
         flexDirection: 'row',
@@ -302,61 +364,71 @@ const styles = StyleSheet.create({
     dateContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    dateLabel: {
-        fontSize: 14,
-        marginRight: 6,
+        gap: 6,
     },
     dateText: {
         fontSize: 14,
-        color: COLORS.text,
-        fontWeight: '500',
+        color: colors.text,
+        fontWeight: '600',
     },
     amount: {
         fontSize: 16,
         fontWeight: '700',
-        color: COLORS.primary,
+        color: colors.primary,
     },
     qrHint: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: 12,
         paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.border,
+        gap: 6,
     },
     qrHintText: {
         fontSize: 14,
-        color: COLORS.primary,
+        color: colors.primary,
         fontWeight: '600',
-        textAlign: 'center',
+        flex: 1,
     },
     emptyContainer: {
         alignItems: 'center',
         paddingVertical: 60,
+        paddingHorizontal: 40,
     },
-    emptyIcon: {
-        fontSize: 48,
-        marginBottom: 16,
+    emptyIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
     },
     emptyText: {
         fontSize: 18,
         fontWeight: '600',
-        color: COLORS.text,
-        marginBottom: 4,
+        color: colors.text,
+        marginBottom: 8,
     },
     emptySubtext: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: 24,
     },
     exploreButton: {
-        backgroundColor: COLORS.primary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
         paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 12,
+        paddingVertical: 14,
+        borderRadius: 14,
+        gap: 8,
     },
     exploreButtonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 16,
         fontWeight: '700',
     },

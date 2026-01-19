@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { apiService } from '../../services/api';
-import { COLORS } from '../../constants';
+import { useTheme } from '../../constants';
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +41,7 @@ import { UserStackParamList } from '../../navigation/UserNavigator';
 type Props = NativeStackScreenProps<UserStackParamList, 'GymDetail'>;
 
 export default function GymDetailScreen({ route, navigation }: Props) {
+    const { colors } = useTheme();
     const { gymId } = route.params;
     const [gym, setGym] = useState<Gym | null>(null);
     const [loading, setLoading] = useState(true);
@@ -82,11 +83,13 @@ export default function GymDetailScreen({ route, navigation }: Props) {
         return days[day] || day;
     };
 
+    const styles = createStyles(colors);
+
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -99,7 +102,6 @@ export default function GymDetailScreen({ route, navigation }: Props) {
     return (
         <SafeAreaView style={styles.container} edges={['bottom']}>
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Image Carousel */}
                 <View style={styles.imageContainer}>
                     <ScrollView
                         horizontal
@@ -120,7 +122,6 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                         ))}
                     </ScrollView>
 
-                    {/* Back Button */}
                     <TouchableOpacity
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
@@ -128,7 +129,6 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                         <Text style={styles.backText}>←</Text>
                     </TouchableOpacity>
 
-                    {/* Image Indicators */}
                     <View style={styles.indicators}>
                         {gym.images.map((_, index) => (
                             <View
@@ -142,29 +142,25 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                     </View>
                 </View>
 
-                {/* Content */}
                 <View style={styles.content}>
-                    {/* Header */}
                     <View style={styles.header}>
                         <View style={styles.titleRow}>
                             <Text style={styles.name}>{gym.name}</Text>
                             <View style={styles.ratingBadge}>
-                                <Text style={styles.ratingText}>⭐ {gym.rating.toFixed(1)}</Text>
+                                <Text style={styles.ratingText}>{gym.rating.toFixed(1)}</Text>
                             </View>
                         </View>
                         <Text style={styles.address}>{gym.address}</Text>
                     </View>
 
-                    {/* Price Card */}
                     <View style={styles.priceCard}>
                         <View>
                             <Text style={styles.priceLabel}>Day Pass</Text>
                             <Text style={styles.price}>{formatPrice(gym.dayPassPrice)}</Text>
                         </View>
-                        <Text style={styles.priceNote}>per day • full access</Text>
+                        <Text style={styles.priceNote}>per day</Text>
                     </View>
 
-                    {/* Description */}
                     {gym.description && (
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>About</Text>
@@ -172,20 +168,20 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                         </View>
                     )}
 
-                    {/* Amenities */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Amenities</Text>
                         <View style={styles.amenitiesGrid}>
                             {gym.amenities.map((amenity, index) => (
                                 <View key={index} style={styles.amenityItem}>
-                                    <Text style={styles.amenityIcon}>✓</Text>
+                                    <View style={styles.amenityCheck}>
+                                        <Text style={styles.amenityIcon}>✓</Text>
+                                    </View>
                                     <Text style={styles.amenityText}>{amenity}</Text>
                                 </View>
                             ))}
                         </View>
                     </View>
 
-                    {/* Opening Hours */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Opening Hours</Text>
                         <View style={styles.hoursContainer}>
@@ -198,7 +194,6 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                         </View>
                     </View>
 
-                    {/* Rules */}
                     {gym.rules && (
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Gym Rules</Text>
@@ -206,12 +201,10 @@ export default function GymDetailScreen({ route, navigation }: Props) {
                         </View>
                     )}
 
-                    {/* Spacer for bottom button */}
                     <View style={{ height: 100 }} />
                 </View>
             </ScrollView>
 
-            {/* Book Now Button */}
             <View style={styles.bottomBar}>
                 <View style={styles.bottomPrice}>
                     <Text style={styles.bottomPriceLabel}>Day Pass</Text>
@@ -225,10 +218,10 @@ export default function GymDetailScreen({ route, navigation }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
@@ -291,26 +284,26 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 24,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
         flex: 1,
     },
     ratingBadge: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.primary + '20',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
     },
     ratingText: {
         fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.text,
+        fontWeight: '700',
+        color: colors.primary,
     },
     address: {
         fontSize: 15,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
     },
     priceCard: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
         borderRadius: 16,
         padding: 20,
         flexDirection: 'row',
@@ -338,12 +331,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 12,
     },
     description: {
         fontSize: 15,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 22,
     },
     amenitiesGrid: {
@@ -356,17 +349,26 @@ const styles = StyleSheet.create({
         width: '50%',
         marginBottom: 12,
     },
-    amenityIcon: {
-        fontSize: 14,
-        color: COLORS.success,
+    amenityCheck: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: colors.success + '20',
+        justifyContent: 'center',
+        alignItems: 'center',
         marginRight: 8,
+    },
+    amenityIcon: {
+        fontSize: 12,
+        color: colors.success,
+        fontWeight: '700',
     },
     amenityText: {
         fontSize: 15,
-        color: COLORS.text,
+        color: colors.text,
     },
     hoursContainer: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
     },
@@ -375,19 +377,19 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        borderBottomColor: colors.border,
     },
     dayText: {
         fontSize: 15,
-        color: COLORS.text,
+        color: colors.text,
     },
     hoursText: {
         fontSize: 15,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
     },
     rulesText: {
         fontSize: 15,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
         lineHeight: 22,
     },
     bottomBar: {
@@ -395,34 +397,34 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
         paddingBottom: 24,
         borderTopWidth: 1,
-        borderTopColor: COLORS.border,
+        borderTopColor: colors.border,
     },
     bottomPrice: {
         flex: 1,
     },
     bottomPriceLabel: {
         fontSize: 12,
-        color: COLORS.textSecondary,
+        color: colors.textSecondary,
     },
     bottomPriceValue: {
         fontSize: 24,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
     },
     bookButton: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
         paddingHorizontal: 32,
         paddingVertical: 16,
         borderRadius: 12,
     },
     bookButtonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 18,
         fontWeight: '700',
     },

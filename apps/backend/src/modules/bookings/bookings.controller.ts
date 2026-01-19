@@ -40,4 +40,15 @@ export class BookingsController {
     async validateQR(@Param('gymId') gymId: string, @Req() req: any, @Body() dto: ValidateQRDto) {
         return this.bookingsService.validateQR(gymId, req.user.id, dto);
     }
+
+    @Post('test-booking')
+    @Roles('USER')
+    @ApiOperation({ summary: '[DEV ONLY] Create test booking without payment' })
+    async createTestBooking(@Req() req: any, @Body() dto: CreateBookingDto) {
+        // Only allow in development
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error('Test endpoint not available in production');
+        }
+        return this.bookingsService.create(req.user.id, dto);
+    }
 }
