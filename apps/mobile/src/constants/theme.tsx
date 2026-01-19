@@ -16,8 +16,8 @@ export const LightTheme = {
     textMuted: '#64748B',
 
     // Buttons
-    primary: '#2563EB',
-    primaryHover: '#1D4ED8',
+    primary: '#202A44',
+    primaryHover: '#1A2238',
     secondary: '#F1F5F9',
     secondaryText: '#020617',
 
@@ -44,8 +44,8 @@ export const DarkTheme = {
     textMuted: '#94A3B8',
 
     // Buttons
-    primary: '#2563EB',
-    primaryHover: '#3B82F6',
+    primary: '#14B8A6',
+    primaryHover: '#0D9488',
     secondary: '#1F2937',
     secondaryText: '#F8FAFC',
 
