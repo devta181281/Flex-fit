@@ -14,10 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../constants';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+    const { colors } = useTheme();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [role, setRole] = useState<'USER' | 'OWNER'>('USER');
@@ -28,7 +30,6 @@ export default function LoginScreen({ navigation }: Props) {
             return;
         }
 
-        // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             Alert.alert('Error', 'Please enter a valid email address');
@@ -46,6 +47,8 @@ export default function LoginScreen({ navigation }: Props) {
         }
     };
 
+    const styles = createStyles(colors);
+
     return (
         <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <KeyboardAvoidingView
@@ -53,13 +56,11 @@ export default function LoginScreen({ navigation }: Props) {
                 style={styles.keyboardView}
             >
                 <View style={styles.content}>
-                    {/* Logo/Header */}
                     <View style={styles.header}>
                         <Text style={styles.logo}>FlexFit</Text>
                         <Text style={styles.tagline}>Find. Book. Workout.</Text>
                     </View>
 
-                    {/* Role Toggle */}
                     <View style={styles.roleToggle}>
                         <TouchableOpacity
                             style={[styles.roleButton, role === 'USER' && styles.roleButtonActive]}
@@ -79,13 +80,12 @@ export default function LoginScreen({ navigation }: Props) {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Email Input */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Email Address</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Enter your email"
-                            placeholderTextColor="#999"
+                            placeholderTextColor={colors.textMuted}
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
@@ -95,7 +95,6 @@ export default function LoginScreen({ navigation }: Props) {
                         />
                     </View>
 
-                    {/* Continue Button */}
                     <TouchableOpacity
                         style={[styles.button, isLoading && styles.buttonDisabled]}
                         onPress={handleSendOTP}
@@ -108,7 +107,6 @@ export default function LoginScreen({ navigation }: Props) {
                         )}
                     </TouchableOpacity>
 
-                    {/* Info Text */}
                     <Text style={styles.infoText}>
                         We'll send you a one-time password to verify your email
                     </Text>
@@ -118,10 +116,10 @@ export default function LoginScreen({ navigation }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0F0F0F',
+        backgroundColor: colors.background,
     },
     keyboardView: {
         flex: 1,
@@ -138,17 +136,17 @@ const styles = StyleSheet.create({
     logo: {
         fontSize: 42,
         fontWeight: '800',
-        color: '#FF6B35',
+        color: colors.primary,
         letterSpacing: 2,
     },
     tagline: {
         fontSize: 16,
-        color: '#888',
+        color: colors.textSecondary,
         marginTop: 8,
     },
     roleToggle: {
         flexDirection: 'row',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 4,
         marginBottom: 32,
@@ -160,36 +158,36 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     roleButtonActive: {
-        backgroundColor: '#FF6B35',
+        backgroundColor: colors.primary,
     },
     roleText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#888',
+        color: colors.textSecondary,
     },
     roleTextActive: {
-        color: '#fff',
+        color: colors.white,
     },
     inputContainer: {
         marginBottom: 24,
     },
     label: {
         fontSize: 14,
-        color: '#888',
+        color: colors.textSecondary,
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 16,
         fontSize: 16,
-        color: '#fff',
+        color: colors.text,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: colors.border,
     },
     button: {
-        backgroundColor: '#FF6B35',
+        backgroundColor: colors.primary,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
@@ -199,13 +197,13 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     buttonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 18,
         fontWeight: '700',
     },
     infoText: {
         textAlign: 'center',
-        color: '#666',
+        color: colors.textMuted,
         fontSize: 14,
     },
 });

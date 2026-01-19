@@ -8,11 +8,13 @@ import {
     RefreshControl,
     ActivityIndicator,
     Alert,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
-import { COLORS } from '../../constants';
+import { useTheme } from '../../constants';
 
 interface Booking {
     id: string;
@@ -29,6 +31,7 @@ interface Booking {
 }
 
 export default function GymBookingsScreen() {
+    const { colors, isDark } = useTheme();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { gymId, gymName } = route.params;
@@ -65,8 +68,6 @@ export default function GymBookingsScreen() {
     const filterBookings = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
 
         return bookings.filter((booking) => {
             const bookingDate = new Date(booking.bookingDate);
@@ -85,18 +86,18 @@ export default function GymBookingsScreen() {
         });
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusConfig = (status: string) => {
         switch (status) {
             case 'CONFIRMED':
-                return COLORS.success;
+                return { color: colors.success, icon: 'checkmark-circle' as const };
             case 'USED':
-                return COLORS.primary;
+                return { color: colors.primary, icon: 'checkmark-done' as const };
             case 'CANCELLED':
-                return COLORS.error;
+                return { color: colors.error, icon: 'close-circle' as const };
             case 'EXPIRED':
-                return COLORS.textSecondary;
+                return { color: colors.textMuted, icon: 'time' as const };
             default:
-                return COLORS.textSecondary;
+                return { color: colors.textSecondary, icon: 'help-circle' as const };
         }
     };
 
@@ -109,38 +110,7 @@ export default function GymBookingsScreen() {
         });
     };
 
-    const renderBookingCard = ({ item }: { item: Booking }) => (
-        <View style={styles.bookingCard}>
-            <View style={styles.bookingHeader}>
-                <Text style={styles.bookingCode}>{item.bookingCode}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                    <Text style={styles.statusText}>{item.status}</Text>
-                </View>
-            </View>
-
-            <View style={styles.userInfo}>
-                <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
-                <Text style={styles.userContact}>{item.user?.phone || item.user?.email}</Text>
-            </View>
-
-            <View style={styles.bookingFooter}>
-                <Text style={styles.bookingDate}>📅 {formatDate(item.bookingDate)}</Text>
-                <Text style={styles.bookingAmount}>₹{item.amount}</Text>
-            </View>
-        </View>
-    );
-
-    const renderEmptyState = () => (
-        <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyTitle}>No Bookings</Text>
-            <Text style={styles.emptySubtitle}>
-                {filter === 'today' && 'No bookings for today'}
-                {filter === 'upcoming' && 'No upcoming bookings'}
-                {filter === 'past' && 'No past bookings'}
-            </Text>
-        </View>
-    );
+    const styles = createStyles(colors, isDark);
 
     const filteredBookings = filterBookings();
     const todayCount = bookings.filter(b => {
@@ -151,11 +121,63 @@ export default function GymBookingsScreen() {
         return bd.getTime() === today.getTime();
     }).length;
 
+    const renderBookingCard = ({ item }: { item: Booking }) => {
+        const statusConfig = getStatusConfig(item.status);
+
+        return (
+            <View style={styles.bookingCard}>
+                <View style={styles.bookingHeader}>
+                    <Text style={styles.bookingCode}>{item.bookingCode}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '18' }]}>
+                        <Ionicons name={statusConfig.icon} size={12} color={statusConfig.color} />
+                        <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                            {item.status}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.userInfo}>
+                    <View style={styles.userAvatar}>
+                        <Text style={styles.userAvatarText}>
+                            {item.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </Text>
+                    </View>
+                    <View style={styles.userDetails}>
+                        <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
+                        <Text style={styles.userContact}>{item.user?.phone || item.user?.email}</Text>
+                    </View>
+                </View>
+
+                <View style={styles.bookingFooter}>
+                    <View style={styles.dateContainer}>
+                        <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
+                        <Text style={styles.bookingDate}>{formatDate(item.bookingDate)}</Text>
+                    </View>
+                    <Text style={styles.bookingAmount}>₹{item.amount}</Text>
+                </View>
+            </View>
+        );
+    };
+
+    const renderEmptyState = () => (
+        <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+                <Ionicons name="calendar-outline" size={48} color={colors.textMuted} />
+            </View>
+            <Text style={styles.emptyTitle}>No Bookings</Text>
+            <Text style={styles.emptySubtitle}>
+                {filter === 'today' && 'No bookings for today'}
+                {filter === 'upcoming' && 'No upcoming bookings'}
+                {filter === 'past' && 'No past bookings'}
+            </Text>
+        </View>
+    );
+
     if (loading) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <ActivityIndicator size="large" color={colors.primary} />
                 </View>
             </SafeAreaView>
         );
@@ -165,12 +187,12 @@ export default function GymBookingsScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text style={styles.backButton}>← Back</Text>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <View style={{ flex: 1 }}>
+                <View style={styles.headerInfo}>
                     <Text style={styles.title}>Bookings</Text>
-                    <Text style={styles.subtitle}>{gymName}</Text>
+                    <Text style={styles.subtitle} numberOfLines={1}>{gymName}</Text>
                 </View>
                 <View style={styles.todayBadge}>
                     <Text style={styles.todayCount}>{todayCount}</Text>
@@ -186,6 +208,11 @@ export default function GymBookingsScreen() {
                         style={[styles.filterTab, filter === tab && styles.filterTabActive]}
                         onPress={() => setFilter(tab)}
                     >
+                        <Ionicons
+                            name={tab === 'today' ? 'today' : tab === 'upcoming' ? 'arrow-forward' : 'time'}
+                            size={16}
+                            color={filter === tab ? colors.white : colors.textMuted}
+                        />
                         <Text style={[styles.filterText, filter === tab && styles.filterTextActive]}>
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
                         </Text>
@@ -204,18 +231,19 @@ export default function GymBookingsScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor={COLORS.primary}
+                        tintColor={colors.primary}
                     />
                 }
+                showsVerticalScrollIndicator={false}
             />
         </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background,
     },
     loadingContainer: {
         flex: 1,
@@ -225,109 +253,155 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     backButton: {
-        fontSize: 16,
-        color: COLORS.primary,
-        marginRight: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    headerInfo: {
+        flex: 1,
     },
     title: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '800',
-        color: COLORS.text,
+        color: colors.text,
     },
     subtitle: {
-        fontSize: 14,
-        color: COLORS.textSecondary,
+        fontSize: 13,
+        color: colors.textMuted,
+        marginTop: 2,
     },
     todayBadge: {
-        backgroundColor: COLORS.primary,
-        borderRadius: 12,
-        paddingHorizontal: 12,
+        backgroundColor: colors.primary,
+        borderRadius: 14,
+        paddingHorizontal: 14,
         paddingVertical: 8,
         alignItems: 'center',
     },
     todayCount: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '800',
-        color: '#fff',
+        color: colors.white,
     },
     todayLabel: {
         fontSize: 10,
-        color: '#fff',
+        color: colors.white,
         opacity: 0.9,
+        fontWeight: '600',
     },
     filterTabs: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         marginBottom: 16,
-        gap: 12,
+        gap: 10,
     },
     filterTab: {
         flex: 1,
-        backgroundColor: COLORS.surface,
-        paddingVertical: 12,
-        borderRadius: 10,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.surface,
+        paddingVertical: 12,
+        borderRadius: 12,
+        gap: 6,
     },
     filterTabActive: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary,
     },
     filterText: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
-        color: COLORS.textSecondary,
+        color: colors.textMuted,
     },
     filterTextActive: {
-        color: '#fff',
+        color: colors.white,
     },
     listContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
+        paddingHorizontal: 16,
+        paddingBottom: 24,
     },
     bookingCard: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.06,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
     },
     bookingHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 14,
     },
     bookingCode: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
         letterSpacing: 1,
     },
     statusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingVertical: 5,
+        borderRadius: 8,
+        gap: 4,
     },
     statusText: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#fff',
+        textTransform: 'uppercase',
     },
     userInfo: {
-        marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 14,
+        paddingBottom: 14,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.border,
+    },
+    userAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: colors.primary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    userAvatarText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: colors.primary,
+    },
+    userDetails: {
+        flex: 1,
     },
     userName: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600',
-        color: COLORS.text,
+        color: colors.text,
     },
     userContact: {
-        fontSize: 14,
-        color: COLORS.textSecondary,
+        fontSize: 13,
+        color: colors.textMuted,
         marginTop: 2,
     },
     bookingFooter: {
@@ -335,31 +409,41 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    dateContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     bookingDate: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textMuted,
     },
     bookingAmount: {
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '700',
-        color: COLORS.primary,
+        color: colors.primary,
     },
     emptyState: {
         alignItems: 'center',
         paddingVertical: 60,
     },
-    emptyIcon: {
-        fontSize: 48,
-        marginBottom: 16,
+    emptyIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
     },
     emptyTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: COLORS.text,
+        color: colors.text,
         marginBottom: 4,
     },
     emptySubtitle: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: colors.textMuted,
     },
 });

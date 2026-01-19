@@ -3,14 +3,29 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
 import RootNavigator from './src/navigation/RootNavigator';
+import { ThemeProvider, useTheme } from './src/constants';
+
+function AppContent() {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar
+        style={isDark ? 'light' : 'dark'}
+        backgroundColor={colors.background}
+        translucent={false}
+      />
+      <RootNavigator />
+    </View>
+  );
+}
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
-        <StatusBar style="light" backgroundColor="#0F0F0F" translucent={false} />
-        <RootNavigator />
-      </View>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
@@ -18,6 +33,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F0F',
   },
 });

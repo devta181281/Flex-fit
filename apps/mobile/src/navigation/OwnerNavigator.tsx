@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { COLORS } from '../constants';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../constants';
 
 // Screens
 import OwnerDashboardScreen from '../screens/owner/OwnerDashboardScreen';
@@ -30,22 +31,31 @@ const Stack = createNativeStackNavigator<OwnerStackParamList>();
 const Tab = createBottomTabNavigator<OwnerTabParamList>();
 
 function TabNavigator() {
+    const { colors, isDark } = useTheme();
+
     return (
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: COLORS.surface,
-                    borderTopColor: COLORS.border,
-                    paddingBottom: 8,
+                    backgroundColor: colors.surface,
+                    borderTopColor: colors.border,
+                    borderTopWidth: 0.5,
                     paddingTop: 8,
-                    height: 64,
+                    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+                    height: Platform.OS === 'ios' ? 88 : 68,
+                    elevation: 0,
+                    shadowColor: colors.black,
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: isDark ? 0.3 : 0.08,
+                    shadowRadius: 8,
                 },
-                tabBarActiveTintColor: COLORS.primary,
-                tabBarInactiveTintColor: COLORS.textSecondary,
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textMuted,
                 tabBarLabelStyle: {
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: '600',
+                    marginTop: 4,
                 },
             }}
         >
@@ -54,7 +64,13 @@ function TabNavigator() {
                 component={OwnerDashboardScreen}
                 options={{
                     tabBarLabel: 'Dashboard',
-                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 22 }}>📊</Text>,
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? 'grid' : 'grid-outline'}
+                            size={24}
+                            color={color}
+                        />
+                    ),
                 }}
             />
             <Tab.Screen
@@ -62,7 +78,13 @@ function TabNavigator() {
                 component={QRScannerScreen}
                 options={{
                     tabBarLabel: 'Scan QR',
-                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 22 }}>📷</Text>,
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? 'qr-code' : 'qr-code-outline'}
+                            size={24}
+                            color={color}
+                        />
+                    ),
                 }}
             />
             <Tab.Screen
@@ -70,7 +92,13 @@ function TabNavigator() {
                 component={OwnerProfileScreen}
                 options={{
                     tabBarLabel: 'Profile',
-                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 22 }}>👤</Text>,
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? 'person' : 'person-outline'}
+                            size={24}
+                            color={color}
+                        />
+                    ),
                 }}
             />
         </Tab.Navigator>
@@ -78,11 +106,13 @@ function TabNavigator() {
 }
 
 export default function OwnerNavigator() {
+    const { colors } = useTheme();
+
     return (
         <Stack.Navigator
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: COLORS.background },
+                contentStyle: { backgroundColor: colors.background },
                 animation: 'slide_from_right',
             }}
         >

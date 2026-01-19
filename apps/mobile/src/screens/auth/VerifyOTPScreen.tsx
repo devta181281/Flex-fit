@@ -15,12 +15,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { apiService } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { useTheme } from '../../constants';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyOTP'>;
 
 const OTP_LENGTH = 8;
 
 export default function VerifyOTPScreen({ route, navigation }: Props) {
+    const { colors } = useTheme();
     const { email, role } = route.params;
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
     const [isLoading, setIsLoading] = useState(false);
@@ -29,12 +31,10 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
     const { setAuth } = useAuthStore();
 
     useEffect(() => {
-        // Focus first input on mount
         inputRefs.current[0]?.focus();
     }, []);
 
     useEffect(() => {
-        // Countdown timer for resend
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
@@ -43,7 +43,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
 
     const handleOtpChange = (value: string, index: number) => {
         if (value.length > 1) {
-            // Handle paste
             const pastedOtp = value.slice(0, OTP_LENGTH).split('');
             const newOtp = [...otp];
             pastedOtp.forEach((char, i) => {
@@ -60,7 +59,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
         newOtp[index] = value;
         setOtp(newOtp);
 
-        // Auto-focus next input
         if (value && index < OTP_LENGTH - 1) {
             inputRefs.current[index + 1]?.focus();
         }
@@ -103,6 +101,8 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
         }
     };
 
+    const styles = createStyles(colors);
+
     return (
         <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <KeyboardAvoidingView
@@ -110,7 +110,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
                 style={styles.keyboardView}
             >
                 <View style={styles.content}>
-                    {/* Header */}
                     <View style={styles.header}>
                         <Text style={styles.title}>Verify Your Email</Text>
                         <Text style={styles.subtitle}>
@@ -119,7 +118,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
                         </Text>
                     </View>
 
-                    {/* OTP Input */}
                     <View style={styles.otpContainer}>
                         {otp.map((digit, index) => (
                             <TextInput
@@ -137,7 +135,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
                         ))}
                     </View>
 
-                    {/* Verify Button */}
                     <TouchableOpacity
                         style={[styles.button, isLoading && styles.buttonDisabled]}
                         onPress={handleVerify}
@@ -150,7 +147,6 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
                         )}
                     </TouchableOpacity>
 
-                    {/* Resend */}
                     <View style={styles.resendContainer}>
                         <Text style={styles.resendText}>Didn't receive the code? </Text>
                         <TouchableOpacity onPress={handleResend} disabled={countdown > 0}>
@@ -160,9 +156,8 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Back Button */}
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <Text style={styles.backText}>← Change Email</Text>
+                        <Text style={styles.backText}>Change Email</Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
@@ -170,10 +165,10 @@ export default function VerifyOTPScreen({ route, navigation }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0F0F0F',
+        backgroundColor: colors.background,
     },
     keyboardView: {
         flex: 1,
@@ -190,17 +185,17 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         marginBottom: 12,
     },
     subtitle: {
         fontSize: 16,
-        color: '#888',
+        color: colors.textSecondary,
         textAlign: 'center',
         lineHeight: 24,
     },
     email: {
-        color: '#FF6B35',
+        color: colors.primary,
         fontWeight: '600',
     },
     otpContainer: {
@@ -212,20 +207,20 @@ const styles = StyleSheet.create({
         width: 38,
         height: 48,
         marginHorizontal: 4,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         fontSize: 24,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text,
         textAlign: 'center',
         borderWidth: 2,
-        borderColor: '#333',
+        borderColor: colors.border,
     },
     otpInputFilled: {
-        borderColor: '#FF6B35',
+        borderColor: colors.primary,
     },
     button: {
-        backgroundColor: '#FF6B35',
+        backgroundColor: colors.primary,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
@@ -235,7 +230,7 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     buttonText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 18,
         fontWeight: '700',
     },
@@ -245,22 +240,22 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     resendText: {
-        color: '#888',
+        color: colors.textSecondary,
         fontSize: 14,
     },
     resendLink: {
-        color: '#FF6B35',
+        color: colors.primary,
         fontSize: 14,
         fontWeight: '600',
     },
     resendDisabled: {
-        color: '#666',
+        color: colors.textMuted,
     },
     backButton: {
         alignItems: 'center',
     },
     backText: {
-        color: '#888',
+        color: colors.textSecondary,
         fontSize: 14,
     },
 });
