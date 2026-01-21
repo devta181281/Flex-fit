@@ -11,9 +11,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../constants';
+import { showRateAppDialog, shareApp, triggerHaptic } from '../../utils/appUtils';
+import type { UserStackParamList } from '../../navigation/UserNavigator';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavigationProp = NativeStackNavigationProp<UserStackParamList>;
 
 interface UserProfile {
     id: string;
@@ -27,6 +33,7 @@ interface UserProfile {
 
 export default function ProfileScreen() {
     const { colors, isDark, toggleTheme } = useTheme();
+    const navigation = useNavigation<NavigationProp>();
     const { user, clearAuth } = useAuthStore();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
@@ -47,6 +54,7 @@ export default function ProfileScreen() {
     };
 
     const handleLogout = () => {
+        triggerHaptic('warning');
         Alert.alert(
             'Logout',
             'Are you sure you want to logout?',
@@ -63,13 +71,42 @@ export default function ProfileScreen() {
         );
     };
 
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            'Delete Account',
+            'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete Account',
+                    style: 'destructive',
+                    onPress: () => {
+                        Alert.alert(
+                            'Confirm Deletion',
+                            'Please contact support@flexfit.app to complete account deletion.',
+                            [{ text: 'OK' }]
+                        );
+                    },
+                },
+            ]
+        );
+    };
+
     const styles = createStyles(colors, isDark);
 
-    const menuItems = [
-        { icon: 'time-outline' as const, title: 'Booking History', screen: 'Bookings' },
-        { icon: 'help-circle-outline' as const, title: 'Help & Support', screen: 'Support' },
-        { icon: 'document-text-outline' as const, title: 'Terms & Conditions', screen: 'Terms' },
-        { icon: 'shield-checkmark-outline' as const, title: 'Privacy Policy', screen: 'Privacy' },
+    const handleMenuPress = (screen: string) => {
+        if (screen === 'Bookings') {
+            // Bookings is a tab, not a stack screen - we'll handle this differently
+            return;
+        }
+        navigation.navigate(screen as any);
+    };
+
+    const menuItems: { icon: keyof typeof Ionicons.glyphMap; title: string; screen: string }[] = [
+        { icon: 'help-circle-outline', title: 'Help & Support', screen: 'Support' },
+        { icon: 'document-text-outline', title: 'Terms & Conditions', screen: 'Terms' },
+        { icon: 'shield-checkmark-outline', title: 'Privacy Policy', screen: 'Privacy' },
+        { icon: 'information-circle-outline', title: 'About FlexFit', screen: 'About' },
     ];
 
     return (
@@ -95,7 +132,10 @@ export default function ProfileScreen() {
                     </View>
                     <Text style={styles.name}>{profile?.name || 'FlexFit User'}</Text>
                     <Text style={styles.email}>{profile?.email || user?.email}</Text>
-                    <TouchableOpacity style={styles.editProfileButton}>
+                    <TouchableOpacity
+                        style={styles.editProfileButton}
+                        onPress={() => navigation.navigate('EditProfile')}
+                    >
                         <Ionicons name="pencil" size={14} color={colors.primary} />
                         <Text style={styles.editProfileText}>Edit Profile</Text>
                     </TouchableOpacity>
@@ -156,6 +196,7 @@ export default function ProfileScreen() {
                                     styles.menuItem,
                                     index === menuItems.length - 1 && styles.menuItemLast
                                 ]}
+                                onPress={() => handleMenuPress(item.screen)}
                             >
                                 <View style={styles.menuIconContainer}>
                                     <Ionicons name={item.icon} size={20} color={colors.primary} />
@@ -167,10 +208,42 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                {/* Logout */}
+                {/* Rate & Share Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>SPREAD THE LOVE</Text>
+                    <View style={styles.rateShareContainer}>
+                        <TouchableOpacity
+                            style={styles.rateShareButton}
+                            onPress={showRateAppDialog}
+                        >
+                            <View style={[styles.rateShareIcon, { backgroundColor: colors.warning + '15' }]}>
+                                <Ionicons name="star" size={22} color={colors.warning} />
+                            </View>
+                            <Text style={styles.rateShareText}>Rate App</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.rateShareButton}
+                            onPress={() => shareApp(false)}
+                        >
+                            <View style={[styles.rateShareIcon, { backgroundColor: colors.primary + '15' }]}>
+                                <Ionicons name="share-social" size={22} color={colors.primary} />
+                            </View>
+                            <Text style={styles.rateShareText}>Share App</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color={colors.error} />
                     <Text style={styles.logoutText}>Logout</Text>
+                </TouchableOpacity>
+
+                {/* Delete Account */}
+                <TouchableOpacity
+                    style={styles.deleteAccountButton}
+                    onPress={handleDeleteAccount}
+                >
+                    <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
+                    <Text style={styles.deleteAccountText}>Delete Account</Text>
                 </TouchableOpacity>
 
                 <Text style={styles.version}>FlexFit v1.0.0</Text>
@@ -364,6 +437,53 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
         fontSize: 16,
         color: colors.error,
         fontWeight: '600',
+    },
+    deleteAccountButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 12,
+        marginBottom: 16,
+    },
+    deleteAccountText: {
+        fontSize: 13,
+        color: colors.textMuted,
+    },
+    rateShareContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    rateShareButton: {
+        flex: 1,
+        backgroundColor: colors.surface,
+        borderRadius: 16,
+        padding: 20,
+        alignItems: 'center',
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.08,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
+    },
+    rateShareIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    rateShareText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.text,
     },
     version: {
         textAlign: 'center',

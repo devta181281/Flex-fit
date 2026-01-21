@@ -14,10 +14,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { useTheme } from '../../constants';
+import { showRateAppDialog, shareApp } from '../../utils/appUtils';
+import type { OwnerStackParamList } from '../../navigation/OwnerNavigator';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type NavigationProp = NativeStackNavigationProp<OwnerStackParamList>;
 
 export default function OwnerProfileScreen() {
     const { colors, isDark, toggleTheme } = useTheme();
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation<NavigationProp>();
     const { user, clearAuth } = useAuthStore();
     const [loading, setLoading] = useState(false);
 
@@ -40,13 +45,38 @@ export default function OwnerProfileScreen() {
         );
     };
 
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            'Delete Account',
+            'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete Account',
+                    style: 'destructive',
+                    onPress: () => {
+                        Alert.alert(
+                            'Confirm Deletion',
+                            'Please contact support@flexfit.app to complete account deletion. This ensures proper handling of your gym listings and pending bookings.',
+                            [{ text: 'OK' }]
+                        );
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleMenuPress = (screen: keyof OwnerStackParamList) => {
+        navigation.navigate(screen as any);
+    };
+
     const styles = createStyles(colors, isDark);
 
-    const menuItems = [
-        { icon: 'grid-outline' as const, title: 'Dashboard', screen: 'Dashboard' },
-        { icon: 'qr-code-outline' as const, title: 'QR Scanner', screen: 'QRScanner' },
-        { icon: 'help-circle-outline' as const, title: 'Help & Support', screen: 'Support' },
-        { icon: 'document-text-outline' as const, title: 'Terms & Conditions', screen: 'Terms' },
+    const menuItems: { icon: keyof typeof Ionicons.glyphMap; title: string; screen: keyof OwnerStackParamList }[] = [
+        { icon: 'help-circle-outline', title: 'Help & Support', screen: 'Support' },
+        { icon: 'document-text-outline', title: 'Terms & Conditions', screen: 'Terms' },
+        { icon: 'shield-checkmark-outline', title: 'Privacy Policy', screen: 'Privacy' },
+        { icon: 'information-circle-outline', title: 'About FlexFit', screen: 'About' },
     ];
 
     return (
@@ -72,6 +102,13 @@ export default function OwnerProfileScreen() {
                         <Ionicons name="business" size={12} color={colors.primary} />
                         <Text style={styles.roleText}>GYM OWNER</Text>
                     </View>
+                    <TouchableOpacity
+                        style={styles.editProfileButton}
+                        onPress={() => navigation.navigate('EditProfile')}
+                    >
+                        <Ionicons name="pencil" size={14} color={colors.primary} />
+                        <Text style={styles.editProfileText}>Edit Profile</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Appearance Section */}
@@ -100,9 +137,9 @@ export default function OwnerProfileScreen() {
                     </View>
                 </View>
 
-                {/* Quick Actions Section */}
+                {/* Settings Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>QUICK ACTIONS</Text>
+                    <Text style={styles.sectionTitle}>SETTINGS</Text>
                     <View style={styles.menuCard}>
                         {menuItems.map((item, index) => (
                             <TouchableOpacity
@@ -111,6 +148,7 @@ export default function OwnerProfileScreen() {
                                     styles.menuItem,
                                     index === menuItems.length - 1 && styles.menuItemLast
                                 ]}
+                                onPress={() => handleMenuPress(item.screen)}
                             >
                                 <View style={styles.menuIconContainer}>
                                     <Ionicons name={item.icon} size={20} color={colors.primary} />
@@ -119,6 +157,31 @@ export default function OwnerProfileScreen() {
                                 <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
                             </TouchableOpacity>
                         ))}
+                    </View>
+                </View>
+
+                {/* Rate & Share Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>SPREAD THE LOVE</Text>
+                    <View style={styles.rateShareContainer}>
+                        <TouchableOpacity
+                            style={styles.rateShareButton}
+                            onPress={showRateAppDialog}
+                        >
+                            <View style={[styles.rateShareIcon, { backgroundColor: colors.warning + '15' }]}>
+                                <Ionicons name="star" size={22} color={colors.warning} />
+                            </View>
+                            <Text style={styles.rateShareText}>Rate App</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.rateShareButton}
+                            onPress={() => shareApp(true)}
+                        >
+                            <View style={[styles.rateShareIcon, { backgroundColor: colors.primary + '15' }]}>
+                                <Ionicons name="share-social" size={22} color={colors.primary} />
+                            </View>
+                            <Text style={styles.rateShareText}>Share App</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -136,6 +199,15 @@ export default function OwnerProfileScreen() {
                             <Text style={styles.logoutText}>Logout</Text>
                         </>
                     )}
+                </TouchableOpacity>
+
+                {/* Delete Account */}
+                <TouchableOpacity
+                    style={styles.deleteAccountButton}
+                    onPress={handleDeleteAccount}
+                >
+                    <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
+                    <Text style={styles.deleteAccountText}>Delete Account</Text>
                 </TouchableOpacity>
 
                 <Text style={styles.version}>FlexFit v1.0.0 (Business)</Text>
@@ -205,6 +277,21 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
         fontWeight: '700',
         color: colors.primary,
         letterSpacing: 0.5,
+    },
+    editProfileButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: colors.primary + '15',
+        gap: 6,
+        marginTop: 12,
+    },
+    editProfileText: {
+        fontSize: 14,
+        color: colors.primary,
+        fontWeight: '600',
     },
     section: {
         marginBottom: 24,
@@ -285,6 +372,53 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
         fontSize: 16,
         color: colors.error,
         fontWeight: '600',
+    },
+    deleteAccountButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 12,
+        marginBottom: 16,
+    },
+    deleteAccountText: {
+        fontSize: 13,
+        color: colors.textMuted,
+    },
+    rateShareContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    rateShareButton: {
+        flex: 1,
+        backgroundColor: colors.surface,
+        borderRadius: 16,
+        padding: 20,
+        alignItems: 'center',
+        ...Platform.select({
+            ios: {
+                shadowColor: colors.black,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.08,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: isDark ? 0 : 2,
+            },
+        }),
+    },
+    rateShareIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    rateShareText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.text,
     },
     version: {
         textAlign: 'center',
