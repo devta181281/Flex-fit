@@ -22,6 +22,7 @@ interface AuthState {
 
     // Actions
     setAuth: (user: User, accessToken: string, role: UserRole) => Promise<void>;
+    setUser: (user: User) => Promise<void>;
     clearAuth: () => Promise<void>;
     loadAuth: () => Promise<void>;
     setLoading: (loading: boolean) => void;
@@ -46,6 +47,11 @@ export const useAuthStore = create<AuthState>((set) => ({
             isAuthenticated: true,
             isLoading: false,
         });
+    },
+
+    setUser: async (user) => {
+        await SecureStore.setItemAsync('user', JSON.stringify(user));
+        set({ user });
     },
 
     clearAuth: async () => {

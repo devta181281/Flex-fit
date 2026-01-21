@@ -14,6 +14,11 @@ import BookingSuccessScreen from '../screens/user/BookingSuccessScreen';
 import BookingsScreen from '../screens/user/BookingsScreen';
 import BookingDetailScreen from '../screens/user/BookingDetailScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
+import TermsScreen from '../screens/user/TermsScreen';
+import SupportScreen from '../screens/user/SupportScreen';
+import PrivacyScreen from '../screens/user/PrivacyScreen';
+import EditProfileScreen from '../screens/user/EditProfileScreen';
+import AboutScreen from '../screens/shared/AboutScreen';
 
 // Types
 export type UserStackParamList = {
@@ -23,6 +28,11 @@ export type UserStackParamList = {
     Payment: { gymId: string; gymName: string; bookingDate: string; orderId: string; amount: number; currency: string };
     BookingSuccess: { bookingId: string; gymName: string; bookingDate: string; bookingCode: string; qrCode: string };
     BookingDetail: { bookingId: string };
+    Terms: undefined;
+    Support: undefined;
+    Privacy: undefined;
+    EditProfile: undefined;
+    About: undefined;
 };
 
 export type UserTabParamList = {
@@ -126,6 +136,11 @@ export default function UserNavigator() {
             <Stack.Screen name="Payment" component={PaymentScreen} />
             <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />
             <Stack.Screen name="BookingDetail" component={BookingDetailScreen} />
+            <Stack.Screen name="Terms" component={TermsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
+            <Stack.Screen name="Privacy" component={PrivacyScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
         </Stack.Navigator>
     );
 }

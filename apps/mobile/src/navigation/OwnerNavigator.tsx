@@ -12,6 +12,11 @@ import GymBookingsScreen from '../screens/owner/GymBookingsScreen';
 import GymEditScreen from '../screens/owner/GymEditScreen';
 import OwnerProfileScreen from '../screens/owner/OwnerProfileScreen';
 import QRScannerScreen from '../screens/owner/QRScannerScreen';
+import TermsScreen from '../screens/owner/TermsScreen';
+import SupportScreen from '../screens/owner/SupportScreen';
+import PrivacyScreen from '../screens/owner/PrivacyScreen';
+import EditProfileScreen from '../screens/owner/EditProfileScreen';
+import AboutScreen from '../screens/shared/AboutScreen';
 
 // Types
 export type OwnerStackParamList = {
@@ -19,6 +24,11 @@ export type OwnerStackParamList = {
     GymRegistration: undefined;
     GymBookings: { gymId: string; gymName: string };
     GymEdit: { gymId: string };
+    Terms: undefined;
+    Support: undefined;
+    Privacy: undefined;
+    EditProfile: undefined;
+    About: undefined;
 };
 
 export type OwnerTabParamList = {
@@ -120,6 +130,11 @@ export default function OwnerNavigator() {
             <Stack.Screen name="GymRegistration" component={GymRegistrationScreen} />
             <Stack.Screen name="GymBookings" component={GymBookingsScreen} />
             <Stack.Screen name="GymEdit" component={GymEditScreen} />
+            <Stack.Screen name="Terms" component={TermsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
+            <Stack.Screen name="Privacy" component={PrivacyScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
         </Stack.Navigator>
     );
 }
