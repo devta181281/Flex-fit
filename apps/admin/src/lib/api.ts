@@ -116,6 +116,66 @@ export interface BookingsResponse {
     totalPages: number;
 }
 
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar?: string;
+    createdAt: string;
+    bookingCount: number;
+}
+
+export interface UsersResponse {
+    data: User[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface Owner {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    createdAt: string;
+    gymCount: number;
+    approvedGyms: number;
+    gyms: { id: string; name: string; status: string }[];
+}
+
+export interface OwnersResponse {
+    data: Owner[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface BookingTrend {
+    date: string;
+    bookings: number;
+    revenue: number;
+}
+
+export interface GymStatusData {
+    name: string;
+    value: number;
+    color: string;
+}
+
+export interface RevenueByGym {
+    name: string;
+    revenue: number;
+    bookings: number;
+}
+
+export interface GymDropdown {
+    id: string;
+    name: string;
+}
+
 // API Service Functions
 export const adminApi = {
     // Auth
@@ -130,6 +190,22 @@ export const adminApi = {
         return response.data;
     },
 
+    // Analytics
+    getBookingTrends: async (days: number = 7): Promise<BookingTrend[]> => {
+        const response = await api.get<BookingTrend[]>('/admin/analytics/booking-trends', { params: { days } });
+        return response.data;
+    },
+
+    getGymStatusDistribution: async (): Promise<GymStatusData[]> => {
+        const response = await api.get<GymStatusData[]>('/admin/analytics/gym-status');
+        return response.data;
+    },
+
+    getRevenueByGym: async (): Promise<RevenueByGym[]> => {
+        const response = await api.get<RevenueByGym[]>('/admin/analytics/revenue-by-gym');
+        return response.data;
+    },
+
     // Gyms
     getPendingGyms: async (): Promise<Gym[]> => {
         const response = await api.get<Gym[]>('/admin/gyms/pending');
@@ -138,6 +214,11 @@ export const adminApi = {
 
     getAllGyms: async (status?: string): Promise<Gym[]> => {
         const response = await api.get<Gym[]>('/admin/gyms', { params: { status } });
+        return response.data;
+    },
+
+    getGymsDropdown: async (): Promise<GymDropdown[]> => {
+        const response = await api.get<GymDropdown[]>('/admin/gyms/dropdown');
         return response.data;
     },
 
@@ -156,6 +237,7 @@ export const adminApi = {
         status?: string;
         gymId?: string;
         userId?: string;
+        userSearch?: string;
         dateFrom?: string;
         dateTo?: string;
         page?: number;
@@ -164,4 +246,25 @@ export const adminApi = {
         const response = await api.get<BookingsResponse>('/admin/bookings', { params });
         return response.data;
     },
+
+    // Users
+    getUsers: async (params?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    }): Promise<UsersResponse> => {
+        const response = await api.get<UsersResponse>('/admin/users', { params });
+        return response.data;
+    },
+
+    // Gym Owners
+    getGymOwners: async (params?: {
+        search?: string;
+        page?: number;
+        limit?: number;
+    }): Promise<OwnersResponse> => {
+        const response = await api.get<OwnersResponse>('/admin/owners', { params });
+        return response.data;
+    },
 };
+

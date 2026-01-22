@@ -10,20 +10,38 @@ import {
     Clock,
     XCircle,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Search,
+    Calendar,
+    Building2,
+    Download
 } from 'lucide-react';
 
 type StatusFilter = 'ALL' | 'CONFIRMED' | 'USED' | 'EXPIRED' | 'CANCELLED';
 
 export default function BookingsPage() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+    const [userSearch, setUserSearch] = useState('');
+    const [gymId, setGymId] = useState('');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
     const [page, setPage] = useState(1);
     const limit = 20;
 
+    // Fetch gyms for dropdown
+    const { data: gyms } = useQuery({
+        queryKey: ['gymsDropdown'],
+        queryFn: adminApi.getGymsDropdown,
+    });
+
     const { data, isLoading, error } = useQuery({
-        queryKey: ['bookings', statusFilter, page],
+        queryKey: ['bookings', statusFilter, userSearch, gymId, dateFrom, dateTo, page],
         queryFn: () => adminApi.getBookings({
             status: statusFilter === 'ALL' ? undefined : statusFilter,
+            userSearch: userSearch || undefined,
+            gymId: gymId || undefined,
+            dateFrom: dateFrom || undefined,
+            dateTo: dateTo || undefined,
             page,
             limit,
         }),
@@ -69,22 +87,40 @@ export default function BookingsPage() {
         }).format(amount);
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
-            </div>
-        );
-    }
+    const handleClearFilters = () => {
+        setStatusFilter('ALL');
+        setUserSearch('');
+        setGymId('');
+        setDateFrom('');
+        setDateTo('');
+        setPage(1);
+    };
 
-    if (error) {
-        return (
-            <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-xl p-6 text-[var(--error)] flex items-center gap-3">
-                <AlertCircle className="w-5 h-5" />
-                Failed to load bookings. Please try again.
-            </div>
-        );
-    }
+    const hasActiveFilters = userSearch || gymId || dateFrom || dateTo || statusFilter !== 'ALL';
+
+    const handleExportCSV = () => {
+        if (!data?.data) return;
+
+        const headers = ['Booking Code', 'User Name', 'User Email', 'Gym', 'Booking Date', 'Amount', 'Status', 'Created At'];
+        const rows = data.data.map(b => [
+            b.bookingCode,
+            b.user.name || 'N/A',
+            b.user.email,
+            b.gym.name,
+            formatDate(b.bookingDate),
+            b.amount.toString(),
+            b.status,
+            formatDate(b.createdAt)
+        ]);
+
+        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bookings_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
 
     const bookings = data?.data || [];
     const totalPages = data?.totalPages || 1;
@@ -92,34 +128,123 @@ export default function BookingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-[var(--foreground)]">Bookings</h1>
-                <p className="text-[var(--muted)] mt-1">
-                    Monitor all platform bookings
-                </p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-[var(--foreground)]">Bookings</h1>
+                    <p className="text-[var(--muted)] mt-1">
+                        Monitor all platform bookings
+                    </p>
+                </div>
+                <button
+                    onClick={handleExportCSV}
+                    disabled={!data?.data?.length}
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors disabled:opacity-50"
+                >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                </button>
             </div>
 
-            {/* Status Filter Tabs */}
-            <div className="flex gap-2 flex-wrap">
-                {statusTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                        <button
-                            key={tab.value}
-                            onClick={() => {
-                                setStatusFilter(tab.value);
+            {/* Filters */}
+            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 space-y-4">
+                {/* Status Tabs */}
+                <div className="flex gap-2 flex-wrap">
+                    {statusTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.value}
+                                onClick={() => {
+                                    setStatusFilter(tab.value);
+                                    setPage(1);
+                                }}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === tab.value
+                                    ? 'bg-[var(--primary)] text-white'
+                                    : 'bg-[var(--background)] text-[var(--muted)] hover:bg-[var(--surface-hover)]'
+                                    }`}
+                            >
+                                <Icon className={`w-4 h-4 ${statusFilter === tab.value ? 'text-white' : tab.color}`} />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Filter Row */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* User Search */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                        <input
+                            type="text"
+                            placeholder="Search user..."
+                            value={userSearch}
+                            onChange={(e) => {
+                                setUserSearch(e.target.value);
                                 setPage(1);
                             }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === tab.value
-                                ? 'bg-[var(--primary)] text-white'
-                                : 'bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-hover)]'
-                                }`}
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                        />
+                    </div>
+
+                    {/* Gym Filter */}
+                    <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                        <select
+                            value={gymId}
+                            onChange={(e) => {
+                                setGymId(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 appearance-none"
                         >
-                            <Icon className={`w-4 h-4 ${statusFilter === tab.value ? 'text-white' : tab.color}`} />
-                            {tab.label}
-                        </button>
-                    );
-                })}
+                            <option value="">All Gyms</option>
+                            {gyms?.map((gym) => (
+                                <option key={gym.id} value={gym.id}>{gym.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Date From */}
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                        <input
+                            type="date"
+                            placeholder="From Date"
+                            value={dateFrom}
+                            onChange={(e) => {
+                                setDateFrom(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                        />
+                    </div>
+
+                    {/* Date To */}
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                        <input
+                            type="date"
+                            placeholder="To Date"
+                            value={dateTo}
+                            onChange={(e) => {
+                                setDateTo(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                        />
+                    </div>
+                </div>
+
+                {/* Clear Filters */}
+                {hasActiveFilters && (
+                    <button
+                        onClick={handleClearFilters}
+                        className="text-sm text-[var(--primary)] hover:underline"
+                    >
+                        Clear all filters
+                    </button>
+                )}
             </div>
 
             {/* Stats */}
@@ -127,8 +252,23 @@ export default function BookingsPage() {
                 Showing {bookings.length} of {data?.total || 0} booking{data?.total !== 1 ? 's' : ''}
             </div>
 
+            {/* Loading */}
+            {isLoading && (
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--primary)] border-t-transparent" />
+                </div>
+            )}
+
+            {/* Error */}
+            {error && (
+                <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-xl p-6 text-[var(--error)] flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5" />
+                    Failed to load bookings. Please try again.
+                </div>
+            )}
+
             {/* Bookings Table */}
-            {bookings.length > 0 ? (
+            {!isLoading && !error && bookings.length > 0 && (
                 <>
                     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
                         <table className="w-full">
@@ -197,14 +337,17 @@ export default function BookingsPage() {
                         </div>
                     )}
                 </>
-            ) : (
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && bookings.length === 0 && (
                 <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-12 text-center">
                     <CalendarCheck className="w-16 h-16 text-[var(--muted)] mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2 text-[var(--foreground)]">No bookings found</h3>
                     <p className="text-[var(--muted)]">
-                        {statusFilter === 'ALL'
-                            ? 'No bookings have been made yet.'
-                            : `No ${statusFilter.toLowerCase()} bookings found.`}
+                        {hasActiveFilters
+                            ? 'Try adjusting your filters.'
+                            : 'No bookings have been made yet.'}
                     </p>
                 </div>
             )}

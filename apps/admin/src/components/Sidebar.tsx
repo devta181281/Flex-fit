@@ -9,7 +9,9 @@ import {
     Clock,
     LogOut,
     Moon,
-    Sun
+    Sun,
+    Users,
+    UserCog
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/providers/theme';
@@ -19,6 +21,8 @@ const navigation = [
     { name: 'Pending Approvals', href: '/dashboard/gyms/pending', icon: Clock },
     { name: 'All Gyms', href: '/dashboard/gyms', icon: Building2 },
     { name: 'Bookings', href: '/dashboard/bookings', icon: ClipboardList },
+    { name: 'Users', href: '/dashboard/users', icon: Users },
+    { name: 'Gym Owners', href: '/dashboard/owners', icon: UserCog },
 ];
 
 export function Sidebar() {

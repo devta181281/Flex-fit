@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { MetricCard } from '@/components/MetricCard';
+import { BookingTrendChart, GymStatusChart, RevenueByGymChart } from '@/components/Charts';
 import {
     Building2,
     CheckCircle2,
@@ -22,6 +23,21 @@ export default function DashboardPage() {
     const { data: pendingGyms } = useQuery({
         queryKey: ['pendingGyms'],
         queryFn: adminApi.getPendingGyms,
+    });
+
+    const { data: bookingTrends } = useQuery({
+        queryKey: ['bookingTrends'],
+        queryFn: () => adminApi.getBookingTrends(7),
+    });
+
+    const { data: gymStatus } = useQuery({
+        queryKey: ['gymStatus'],
+        queryFn: adminApi.getGymStatusDistribution,
+    });
+
+    const { data: revenueByGym } = useQuery({
+        queryKey: ['revenueByGym'],
+        queryFn: adminApi.getRevenueByGym,
     });
 
     if (isLoading) {
@@ -87,6 +103,15 @@ export default function DashboardPage() {
                     color="primary"
                 />
             </div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {bookingTrends && <BookingTrendChart data={bookingTrends} />}
+                {gymStatus && gymStatus.length > 0 && <GymStatusChart data={gymStatus} />}
+            </div>
+
+            {/* Revenue Chart */}
+            {revenueByGym && <RevenueByGymChart data={revenueByGym} />}
 
             {/* Pending Approvals Section */}
             {pendingGyms && pendingGyms.length > 0 && (
