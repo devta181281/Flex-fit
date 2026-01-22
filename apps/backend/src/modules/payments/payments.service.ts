@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePaymentOrderDto, VerifyPaymentDto } from './dto/payment.dto';
 import { PaymentStatus } from '@prisma/client';
 import * as crypto from 'crypto';
+import { BookingsService } from '../bookings/bookings.service';
 
 // Razorpay types
 interface RazorpayOrder {
@@ -13,6 +14,9 @@ interface RazorpayOrder {
     receipt: string;
 }
 
+// Maximum bookings allowed per user
+const MAX_BOOKINGS_PER_USER = 16;
+
 @Injectable()
 export class PaymentsService {
     private razorpay: any;
@@ -20,6 +24,8 @@ export class PaymentsService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        @Inject(forwardRef(() => BookingsService))
+        private bookingsService: BookingsService,
     ) {
         // Initialize Razorpay
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -34,6 +40,14 @@ export class PaymentsService {
      * Create a Razorpay order
      */
     async createOrder(userId: string, dto: CreatePaymentOrderDto) {
+        // Check booking limit BEFORE anything else
+        const bookingCount = await this.bookingsService.getUserBookingCount(userId);
+        if (bookingCount >= MAX_BOOKINGS_PER_USER) {
+            throw new BadRequestException(
+                `You have reached the maximum limit of ${MAX_BOOKINGS_PER_USER} bookings`
+            );
+        }
+
         // Get gym details
         const gym = await this.prisma.gym.findUnique({
             where: { id: dto.gymId },

@@ -11,12 +11,32 @@ import * as QRCode from 'qrcode';
 
 @Injectable()
 export class BookingsService {
+    // Maximum number of bookings allowed per user
+    private readonly MAX_BOOKINGS_PER_USER = 16;
+
     constructor(private prisma: PrismaService) { }
+
+    /**
+     * Get total booking count for a user
+     */
+    async getUserBookingCount(userId: string): Promise<number> {
+        return this.prisma.booking.count({
+            where: { userId },
+        });
+    }
 
     /**
      * Create a new booking after successful payment
      */
     async create(userId: string, dto: CreateBookingDto) {
+        // Check booking limit
+        const bookingCount = await this.getUserBookingCount(userId);
+        if (bookingCount >= this.MAX_BOOKINGS_PER_USER) {
+            throw new BadRequestException(
+                `You have reached the maximum limit of ${this.MAX_BOOKINGS_PER_USER} bookings`
+            );
+        }
+
         // Verify gym exists
         const gym = await this.prisma.gym.findUnique({
             where: { id: dto.gymId },
