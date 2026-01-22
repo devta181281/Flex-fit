@@ -25,6 +25,11 @@ export class GetBookingsDto {
     @IsOptional()
     userId?: string;
 
+    @ApiPropertyOptional({ description: 'Search by user name or email' })
+    @IsString()
+    @IsOptional()
+    userSearch?: string;
+
     @ApiPropertyOptional({ example: '2024-01-01' })
     @IsDateString()
     @IsOptional()
@@ -49,3 +54,46 @@ export class GetBookingsDto {
     @IsOptional()
     limit?: number;
 }
+
+export class GetUsersDto {
+    @ApiPropertyOptional({ description: 'Search by name, email, or phone' })
+    @IsString()
+    @IsOptional()
+    search?: string;
+
+    @ApiPropertyOptional({ default: 1 })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    page?: number;
+
+    @ApiPropertyOptional({ default: 20 })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    limit?: number;
+}
+
+export class GetGymOwnersDto {
+    @ApiPropertyOptional({ description: 'Search by name, email, or phone' })
+    @IsString()
+    @IsOptional()
+    search?: string;
+
+    @ApiPropertyOptional({ default: 1 })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    page?: number;
+
+    @ApiPropertyOptional({ default: 20 })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    limit?: number;
+}
+
