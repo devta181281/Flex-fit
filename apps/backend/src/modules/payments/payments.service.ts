@@ -5,6 +5,7 @@ import { CreatePaymentOrderDto, VerifyPaymentDto } from './dto/payment.dto';
 import { PaymentStatus } from '@prisma/client';
 import * as crypto from 'crypto';
 import { BookingsService } from '../bookings/bookings.service';
+import { BOOKING_CONSTANTS, BookingLimitException } from '../../common';
 
 // Razorpay types
 interface RazorpayOrder {
@@ -13,9 +14,6 @@ interface RazorpayOrder {
     currency: string;
     receipt: string;
 }
-
-// Maximum bookings allowed per user
-const MAX_BOOKINGS_PER_USER = 16;
 
 @Injectable()
 export class PaymentsService {
@@ -42,10 +40,8 @@ export class PaymentsService {
     async createOrder(userId: string, dto: CreatePaymentOrderDto) {
         // Check booking limit BEFORE anything else
         const bookingCount = await this.bookingsService.getUserBookingCount(userId);
-        if (bookingCount >= MAX_BOOKINGS_PER_USER) {
-            throw new BadRequestException(
-                `You have reached the maximum limit of ${MAX_BOOKINGS_PER_USER} bookings`
-            );
+        if (bookingCount >= BOOKING_CONSTANTS.MAX_BOOKINGS_PER_USER) {
+            throw new BookingLimitException(BOOKING_CONSTANTS.MAX_BOOKINGS_PER_USER);
         }
 
         // Get gym details
