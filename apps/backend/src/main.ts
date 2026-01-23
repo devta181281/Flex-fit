@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter, LoggingInterceptor, TransformInterceptor } from './common';
 
 async function bootstrap() {
+    const logger = new Logger('Bootstrap');
     const app = await NestFactory.create(AppModule);
 
     // Enable CORS
@@ -16,6 +18,15 @@ async function bootstrap() {
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         credentials: true,
     });
+
+    // Global exception filter - consistent error responses
+    app.useGlobalFilters(new HttpExceptionFilter());
+
+    // Global interceptors
+    app.useGlobalInterceptors(
+        new LoggingInterceptor(),      // Request/response logging
+        new TransformInterceptor(),    // Consistent response format
+    );
 
     // Global validation pipe
     app.useGlobalPipes(
@@ -46,8 +57,9 @@ async function bootstrap() {
     const port = process.env.BACKEND_PORT || 3001;
     await app.listen(port);
 
-    console.log(`🚀 FlexFit API running on: http://localhost:${port}`);
-    console.log(`📚 API Docs available at: http://localhost:${port}/api/docs`);
+    logger.log(`🚀 FlexFit API running on: http://localhost:${port}`);
+    logger.log(`📚 API Docs available at: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
+

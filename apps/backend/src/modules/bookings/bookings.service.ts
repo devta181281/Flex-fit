@@ -8,12 +8,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, ValidateQRDto } from './dto/booking.dto';
 import { BookingStatus } from '@prisma/client';
 import * as QRCode from 'qrcode';
+import { BOOKING_CONSTANTS, MESSAGES, BookingLimitException } from '../../common';
 
 @Injectable()
 export class BookingsService {
-    // Maximum number of bookings allowed per user
-    private readonly MAX_BOOKINGS_PER_USER = 16;
-
     constructor(private prisma: PrismaService) { }
 
     /**
@@ -31,10 +29,8 @@ export class BookingsService {
     async create(userId: string, dto: CreateBookingDto) {
         // Check booking limit
         const bookingCount = await this.getUserBookingCount(userId);
-        if (bookingCount >= this.MAX_BOOKINGS_PER_USER) {
-            throw new BadRequestException(
-                `You have reached the maximum limit of ${this.MAX_BOOKINGS_PER_USER} bookings`
-            );
+        if (bookingCount >= BOOKING_CONSTANTS.MAX_BOOKINGS_PER_USER) {
+            throw new BookingLimitException(BOOKING_CONSTANTS.MAX_BOOKINGS_PER_USER);
         }
 
         // Verify gym exists
